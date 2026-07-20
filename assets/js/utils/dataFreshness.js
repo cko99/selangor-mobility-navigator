@@ -8,5 +8,5 @@ export function vehicleFreshness(timestamp, nowSeconds = Date.now() / 1000) {
 }
 
 export function statusLabel(status) {
-  return ({ live: 'Live', delayed: 'Delayed data', stale: 'Stale', scheduled: 'Scheduled', static: 'Static', forecast: 'Forecast', warning: 'Warning', offline: 'Offline', demo: 'Demo fallback', unavailable: 'Unavailable' })[status] || status;
+  return ({ live: 'Fresh feed', delayed: 'Delayed data', stale: 'Stale', scheduled: 'Scheduled', static: 'Static', forecast: 'Forecast', warning: 'Warning', offline: 'Offline', demo: 'Prototype', unavailable: 'Unavailable' })[status] || status;
 }

@@ -22,3 +22,8 @@ export function setText(selector, text) { const node = document.querySelector(se
 export function unavailableCard(title, reason) {
   return `<div class="data-empty"><strong>${escapeHtml(title)}</strong><div style="margin-top:6px">${escapeHtml(reason)}</div>${badge('unavailable')}</div>`;
 }
+
+export function comingSoon({ title, explanation, features = [], phase = '', roadmapView = 'status' }) {
+  const items = features.map(feature => `<li>${escapeHtml(feature)}</li>`).join('');
+  return `<article class="card centered-card fade-in"><div class="coming-icon"><i data-lucide="construction"></i></div><div class="eyebrow">Coming Soon</div><h2>${escapeHtml(title)}</h2><p>${escapeHtml(explanation)}</p>${items ? `<ul class="planned-list">${items}</ul>` : ''}${phase ? `<div class="phase-label">Target phase · ${escapeHtml(phase)}</div>` : ''}<div class="action-row centered-actions"><button class="btn-ghost" onclick="switchView('dashboard')"><i data-lucide="arrow-left"></i>Back to Dashboard</button>${roadmapView ? `<button class="btn-primary" onclick="switchView('${escapeHtml(roadmapView)}')"><i data-lucide="milestone"></i>View Roadmap</button>` : ''}</div></article>`;
+}

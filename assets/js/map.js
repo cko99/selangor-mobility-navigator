@@ -14,8 +14,17 @@ export function mountMap(host, interactive = true) {
   if (!state.map) {
     const container = document.createElement('div');
     container.className = 'leaflet-dynamic-host'; container.style.cssText = 'position:absolute;inset:0;width:100%;height:100%'; host.append(container);
+    container.setAttribute('aria-label', 'Interactive transit map');
     state.map = window.L.map(container, { zoomControl: false, attributionControl: true, dragging: interactive, scrollWheelZoom: interactive }).setView(MAP_DEFAULT.center, MAP_DEFAULT.zoom);
     state.baseLayer = window.L.tileLayer(osm.url, osm.options).addTo(state.map);
+    state.baseLayer.on('tileerror', () => {
+      if (host.querySelector('.map-tile-fallback')) return;
+      const fallback = document.createElement('div');
+      fallback.className = 'map-tile-fallback';
+      fallback.textContent = 'Map tiles are temporarily unavailable. Transit layers may still be explored.';
+      host.append(fallback);
+    });
+    state.baseLayer.on('tileload', () => host.querySelector('.map-tile-fallback')?.remove());
     state.map.on('zoomend', renderStations);
   }
   return state.map;
@@ -41,7 +50,8 @@ export function renderStations() {
     if (!state.activeModes.has(station.mode) || (state.currentLayer !== 'all' && state.currentLayer !== station.mode)) continue;
     if (station.mode === 'bus' && zoom < 15) continue;
     const color = MODE_STYLE[station.mode]?.color || '#7a8699', icon = window.L.divIcon({ className: '', html: `<div class="station-marker" style="background:${color}"></div>`, iconSize: [14, 14], iconAnchor: [7, 7] });
-    const marker = window.L.marker([station.latitude, station.longitude], { icon }).addTo(state.map);
+    const marker = window.L.marker([station.latitude, station.longitude], { icon, title: `${station.name} station` }).addTo(state.map);
+    marker.getElement()?.setAttribute('aria-label', `${station.name} station`);
     marker.bindPopup(`<b>${escapeHtml(station.name)}</b><br>${escapeHtml(station.mode.toUpperCase())}<br><span>Static · data.gov.my</span>`);
     state.stationLayers.push(marker);
   }

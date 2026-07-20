@@ -1,692 +1,174 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>Selangor Mobility Navigator</title>
-
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-
-<link rel="stylesheet" href="/assets/css/app.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Selangor Mobility Navigator — an independent Web GIS public prototype for transit discovery across Selangor and the Klang Valley." />
+  <meta name="theme-color" content="#0a0e14" />
+  <meta property="og:title" content="Selangor Mobility Navigator — Public Prototype v0.2.1" />
+  <meta property="og:description" content="Explore transit locations, nearby stations and scheduled journey information across Selangor and the Klang Valley." />
+  <title>Selangor Mobility Navigator · Public Prototype v0.2.1</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="/assets/css/app.css" />
 </head>
 <body>
-
 <div class="app">
-  <!-- ============ SIDEBAR BACKDROP (mobile) ============ -->
   <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
-
-  <!-- ============ SIDEBAR ============ -->
-  <aside class="sidebar" id="sidebar">
+  <aside class="sidebar" id="sidebar" aria-label="Main navigation">
     <div class="brand">
-      <div class="brand-mark">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="6" cy="19" r="2"/><circle cx="18" cy="19" r="2"/>
-          <path d="M6 19h10a2 2 0 0 0 2-2V8l-3-3H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z"/>
-        </svg>
-      </div>
-      <div class="brand-text">
-        <div class="t1">Selangor</div>
-        <div class="t2">Mobility Navigator</div>
-      </div>
+      <div class="brand-mark" aria-hidden="true"><i data-lucide="navigation"></i></div>
+      <div class="brand-text"><div class="t1">Selangor</div><div class="t2">Mobility Navigator</div></div>
     </div>
-
-    <div class="nav-scroll touch-scroll">
+    <nav class="nav-scroll touch-scroll">
       <div class="nav-section">
-        <div class="nav-label">Navigate</div>
-        <div class="nav-item active" data-view="dashboard">
-          <i data-lucide="layout-dashboard"></i><span>Dashboard</span>
-        </div>
-        <div class="nav-item" data-view="livemap">
-          <i data-lucide="map"></i><span>Live Map</span>
-        </div>
-        <div class="nav-item" data-view="nearest">
-          <i data-lucide="locate"></i><span>Nearest Station</span>
-        </div>
-        <div class="nav-item" data-view="planner">
-          <i data-lucide="route"></i><span>Trip Planner</span>
-        </div>
+        <div class="nav-label">Explore</div>
+        <button class="nav-item active" data-view="dashboard"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></button>
+        <button class="nav-item" data-view="livemap"><i data-lucide="map"></i><span>Transit Map</span></button>
+        <button class="nav-item" data-view="nearest"><i data-lucide="locate"></i><span>Nearest Station</span></button>
+        <button class="nav-item" data-view="planner"><i data-lucide="route"></i><span>Trip Planner</span></button>
+        <button class="nav-item" data-view="status"><i data-lucide="database"></i><span>Project Status</span></button>
       </div>
-
       <div class="nav-section">
-        <div class="nav-label">Transit Info</div>
-        <div class="nav-item" data-view="schedules">
-          <i data-lucide="clock"></i><span>Schedules</span>
-        </div>
-        <div class="nav-item" data-view="alerts">
-          <i data-lucide="bell"></i><span>Alerts</span>
-          <span class="badge" id="alertBadge">0</span>
-        </div>
-        <div class="nav-item" data-view="fares">
-          <i data-lucide="wallet"></i><span>Fares & Passes</span>
-        </div>
-        <div class="nav-item" data-view="parkride">
-          <i data-lucide="parking-square"></i><span>Park & Ride</span>
-        </div>
+        <div class="nav-label">Planned modules</div>
+        <button class="nav-item" data-view="schedules"><i data-lucide="clock"></i><span>Schedules</span></button>
+        <button class="nav-item" data-view="alerts"><i data-lucide="bell"></i><span>Alerts</span></button>
+        <button class="nav-item" data-view="fares"><i data-lucide="calculator"></i><span>Fare Estimator</span></button>
+        <button class="nav-item" data-view="parkride"><i data-lucide="parking-square"></i><span>Park & Ride</span></button>
+        <button class="nav-item" data-view="account"><i data-lucide="user-circle"></i><span>Account</span></button>
       </div>
-
       <div class="nav-section">
-        <div class="nav-label">Account</div>
-        <div class="nav-item" data-view="account">
-          <i data-lucide="user-circle"></i><span>Account</span>
-        </div>
-        <div class="nav-item" data-view="help">
-          <i data-lucide="help-circle"></i><span>Help & Support</span>
-        </div>
-        <div class="nav-item" data-view="feedback">
-          <i data-lucide="message-square"></i><span>Feedback</span>
-        </div>
-        <div class="nav-item" data-view="settings">
-          <i data-lucide="settings"></i><span>Settings</span>
-        </div>
+        <div class="nav-label">Information</div>
+        <button class="nav-item" data-view="help"><i data-lucide="help-circle"></i><span>Help & Support</span></button>
+        <button class="nav-item" data-view="feedback"><i data-lucide="message-square"></i><span>Feedback</span></button>
       </div>
-    </div>
-
-    <!-- BOTTOM GLOBAL TRANSPORT MODE FILTER -->
+    </nav>
     <div class="mode-filter">
-      <div class="mode-filter-title">
-        <i data-lucide="filter" style="width:11px;height:11px"></i>
-        <span>Global Map Filter</span>
-      </div>
+      <div class="mode-filter-title"><i data-lucide="filter"></i><span>Map layers</span></div>
       <div class="mode-grid">
-        <button class="mode-btn ktm active" data-mode="ktm" title="KTM Komuter">
-          <span class="ind"></span>
-          <i data-lucide="train-front"></i>
-          <span class="ml">KTM</span>
-        </button>
-        <button class="mode-btn lrt active" data-mode="lrt" title="LRT">
-          <span class="ind"></span>
-          <i data-lucide="train"></i>
-          <span class="ml">LRT</span>
-        </button>
-        <button class="mode-btn mrt active" data-mode="mrt" title="MRT">
-          <span class="ind"></span>
-          <i data-lucide="train-track"></i>
-          <span class="ml">MRT</span>
-        </button>
-        <button class="mode-btn bus active" data-mode="bus" title="Bus">
-          <span class="ind"></span>
-          <i data-lucide="bus"></i>
-          <span class="ml">BUS</span>
-        </button>
+        <button class="mode-btn ktm active" data-mode="ktm" aria-pressed="true" aria-label="Toggle KTM"><span class="ind"></span><i data-lucide="train-front"></i><span class="ml">KTM</span></button>
+        <button class="mode-btn lrt active" data-mode="lrt" aria-pressed="true" aria-label="Toggle LRT"><span class="ind"></span><i data-lucide="train"></i><span class="ml">LRT</span></button>
+        <button class="mode-btn mrt active" data-mode="mrt" aria-pressed="true" aria-label="Toggle MRT"><span class="ind"></span><i data-lucide="train-track"></i><span class="ml">MRT</span></button>
+        <button class="mode-btn bus active" data-mode="bus" aria-pressed="true" aria-label="Toggle bus"><span class="ind"></span><i data-lucide="bus"></i><span class="ml">BUS</span></button>
       </div>
     </div>
   </aside>
 
-  <!-- ============ MAIN ============ -->
   <main class="main">
-    <!-- TOPBAR with hamburger -->
-    <div class="topbar">
-      <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu">
-        <i data-lucide="menu"></i>
-        <span class="ham-badge"></span>
-      </button>
-
-      <div class="search">
-        <i data-lucide="search" style="width:16px;height:16px;color:var(--muted)"></i>
-        <input type="text" placeholder="Search stations, lines, or destinations..." id="globalSearch" />
-        <span class="kbd mono">⌘K</span>
-      </div>
-
+    <header class="topbar">
+      <button class="hamburger" id="hamburgerBtn" aria-label="Open navigation" aria-expanded="false"><i data-lucide="menu"></i></button>
+      <div class="search"><i data-lucide="search"></i><input type="search" placeholder="Search stations" id="globalSearch" aria-label="Search stations" /></div>
       <div class="topbar-actions">
-        <button class="icon-btn" id="alertBtn" title="Alerts">
-          <i data-lucide="bell" style="width:17px;height:17px"></i>
-          <span class="dot"></span>
+        <button class="prototype-badge" id="statusBtn" type="button">Public Prototype</button>
+        <button class="icon-btn" id="locateBtn" aria-label="Find nearest station"><i data-lucide="locate"></i></button>
+        <button class="user-chip" id="userChip" type="button" aria-label="Open account information">
+          <span class="avatar" aria-hidden="true"><i data-lucide="user"></i></span>
+          <span class="guest-copy"><strong>Guest</strong><small>Public prototype session</small></span>
         </button>
-        <button class="icon-btn" id="locateBtn" title="My location">
-          <i data-lucide="locate" style="width:17px;height:17px"></i>
-        </button>
-        <div class="user-chip" id="userChip">
-          <div class="avatar">L</div>
-          <div style="font-size:12px;line-height:1.2">
-            <div style="font-weight:600">Local mode</div>
-            <div style="color:var(--muted);font-size:10px">No profile stored</div>
-          </div>
-        </div>
       </div>
-    </div>
+    </header>
 
-    <!-- CONTENT -->
     <div class="content">
-
-      <!-- ========== VIEW: DASHBOARD ========== -->
-      <section class="view active" id="view-dashboard">
-        <div class="view-scroll touch-scroll">
-          <div class="grid grid-cols-12 gap-4">
-            <div class="col-span-12 lg:col-span-8 card fade-in">
-              <div style="padding:20px 22px; background:linear-gradient(135deg, rgba(255,122,26,0.15), rgba(255,77,109,0.05)); position:relative; overflow:hidden;">
-                <div style="font-size:11px;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase">Phase 2</div>
-                <h2 style="font-size:22px;font-weight:600;margin:4px 0 14px">Loading official public data…</h2>
-                <p style="color:var(--muted);font-size:13px;margin:0 0 16px;max-width:520px">Source status and freshness will appear after verification.</p>
-                <div style="display:flex;gap:8px;flex-wrap:wrap">
-                  <button class="btn-primary" onclick="switchView('planner')"><i data-lucide="route" style="width:14px;height:14px"></i>Plan a Trip</button>
-                  <button class="btn-ghost" onclick="switchView('nearest')"><i data-lucide="locate" style="width:14px;height:14px"></i>Find Nearest Station</button>
-                  <button class="btn-ghost" onclick="switchView('livemap')"><i data-lucide="map" style="width:14px;height:14px"></i>Open Live Map</button>
-                </div>
-              </div>
+      <section class="view active" id="view-dashboard" aria-labelledby="dashboardTitle">
+        <div class="view-scroll touch-scroll"><div class="grid grid-cols-12 gap-4">
+          <article class="col-span-12 lg:col-span-8 card fade-in hero-card">
+            <div class="eyebrow">Public Prototype v0.2.1</div>
+            <h1 id="dashboardTitle">Selangor Mobility Navigator</h1>
+            <p>A responsive Web GIS prototype for understanding public-transport locations, nearby stations and scheduled journey information across Selangor and the Klang Valley.</p>
+            <div class="action-row">
+              <button class="btn-primary" onclick="switchView('livemap')"><i data-lucide="map"></i>Explore Transit Map</button>
+              <button class="btn-ghost" onclick="switchView('nearest')"><i data-lucide="locate"></i>Find Nearest Station</button>
+              <button class="btn-ghost" onclick="switchView('status')"><i data-lucide="database"></i>View Project Status</button>
             </div>
-
-            <div class="col-span-12 lg:col-span-4 card fade-in" style="animation-delay:0.05s">
-              <div style="padding:18px; background:linear-gradient(135deg,#1a2230,#131a24); position:relative; overflow:hidden; height:100%">
-                <div style="position:absolute;top:-40px;right:-40px;width:180px;height:180px;background:radial-gradient(circle,rgba(255,179,71,0.25),transparent 70%);pointer-events:none"></div>
-                <div style="display:flex;align-items:center;justify-content:space-between;position:relative">
-                  <div>
-                    <div style="font-size:38px;font-weight:300;line-height:1">—</div>
-                    <div style="font-size:13px;color:var(--muted);margin-top:2px">Forecast loading</div>
-                    <div style="font-size:11px;color:var(--muted-2);margin-top:6px;display:flex;align-items:center;gap:4px">
-                      <i data-lucide="map-pin" style="width:10px;height:10px"></i>Shah Alam, Selangor
-                    </div>
-                  </div>
-                  <div style="width:70px;height:70px;position:relative">
-                    <div style="position:absolute;top:14px;left:18px;width:32px;height:32px;background:radial-gradient(circle at 30% 30%,#ffd23f,#ff9a1a);border-radius:50%;box-shadow:0 0 30px rgba(255,210,63,0.6);animation:sunbob 4s ease-in-out infinite"></div>
-                    <div style="position:absolute;background:#c8d1de;border-radius:20px;width:48px;height:16px;top:36px;left:8px"></div>
-                  </div>
-                </div>
-                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:14px;position:relative">
-                  <div style="padding:8px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;text-align:center">
-                    <div style="font-size:9px;color:var(--muted);text-transform:uppercase">Morning</div><div style="font-size:13px;font-weight:600;margin-top:2px">—</div>
-                  </div>
-                  <div style="padding:8px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;text-align:center">
-                    <div style="font-size:9px;color:var(--muted);text-transform:uppercase">Afternoon</div><div style="font-size:13px;font-weight:600;margin-top:2px">—</div>
-                  </div>
-                  <div style="padding:8px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;text-align:center">
-                    <div style="font-size:9px;color:var(--muted);text-transform:uppercase">Night</div><div style="font-size:13px;font-weight:600;margin-top:2px">—</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-span-12 lg:col-span-4 card fade-in" style="animation-delay:0.1s">
-              <div class="card-head">
-                <div class="card-title"><i data-lucide="alert-triangle" style="width:15px;height:15px;color:var(--yellow)"></i>Active Alerts</div>
-                <span class="pill offline">0 active</span>
-              </div>
-              <div style="padding:8px 14px 14px" id="dashAlerts"></div>
-            </div>
-
-            <div class="col-span-12 lg:col-span-4 fade-in" style="animation-delay:0.15s">
-              <div class="grid grid-cols-2 gap-3 h-full">
-                <div class="stat-mini"><div class="lbl">Verified Vehicles</div><div class="val" id="dashLiveCount">—</div><div style="font-size:11px;color:var(--muted);margin-top:4px">Loading feed</div></div>
-                <div class="stat-mini"><div class="lbl">On-Time Rate</div><div class="val">—</div><div style="font-size:11px;color:var(--muted);margin-top:4px">Unavailable</div></div>
-                <div class="stat-mini"><div class="lbl">Avg Wait</div><div class="val">—</div><div style="font-size:11px;color:var(--muted);margin-top:4px">Unavailable</div></div>
-                <div class="stat-mini"><div class="lbl">Network Load</div><div class="val">—</div><div style="font-size:11px;color:var(--muted);margin-top:4px">Unavailable</div></div>
-              </div>
-            </div>
-
-            <div class="col-span-12 lg:col-span-4 card fade-in" style="animation-delay:0.2s">
-              <div class="card-head">
-                <div class="card-title"><i data-lucide="map" style="width:15px;height:15px;color:var(--accent)"></i>Network Overview</div>
-                <button class="ghost-btn" onclick="switchView('livemap')">Expand</button>
-              </div>
-              <div style="padding:14px">
-                <div class="mini-map" id="miniMap"></div>
-              </div>
-            </div>
-
-            <div class="col-span-12 lg:col-span-8 card fade-in" style="animation-delay:0.25s">
-              <div class="card-head">
-                <div class="card-title"><i data-lucide="train-front" style="width:15px;height:15px;color:var(--accent)"></i><span>Scheduled Departures</span></div>
-                <span class="pill scheduled">Scheduled</span>
-              </div>
-              <div id="dashArrivals" style="padding:6px 0"></div>
-            </div>
+          </article>
+          <article class="col-span-12 lg:col-span-4 card fade-in status-summary">
+            <div class="card-head"><div class="card-title"><i data-lucide="shield-check"></i>Prototype disclosure</div><span class="pill demo">Prototype</span></div>
+            <div class="card-body"><p>This independent portfolio project is not affiliated with KTMB, Prasarana, Rapid KL, MRT Corp or any government agency.</p><p class="source-meta">Some modules use static or demonstration data while verified public-data integration is in progress.</p></div>
+          </article>
+          <div class="col-span-12 status-cards fade-in" aria-label="Project summary">
+            <article class="stat-mini"><div class="lbl">Project Status</div><div class="project-value">Public Prototype v0.2.1</div><p>Interface operational. Public-data validation is in progress.</p></article>
+            <article class="stat-mini"><div class="lbl">Core Focus</div><div class="project-value">Transit Map</div><p>Stations, routes and nearest-transit discovery.</p></article>
+            <article class="stat-mini"><div class="lbl">Data Status</div><div class="project-value">Integration in progress</div><p>GTFS, weather and supporting datasets are being validated.</p></article>
+            <article class="stat-mini"><div class="lbl">Coverage</div><div class="project-value">Klang Valley</div><p>Selangor, Kuala Lumpur and Putrajaya prototype scope.</p></article>
           </div>
-        </div>
+          <article class="col-span-12 card fade-in map-preview-card">
+            <div class="card-head"><div class="card-title"><i data-lucide="map"></i>Transit map preview</div><span class="pill static">Static routes</span></div>
+            <div class="mini-map" id="miniMap" data-map-host></div>
+          </article>
+        </div></div>
       </section>
 
-      <!-- ========== VIEW: LIVE MAP ========== -->
-      <section class="view" id="view-livemap">
-        <div class="card fade-in" style="height:100%; position:relative; display:flex; flex-direction:column">
-          <div class="map-overlay-top">
-            <div class="layer-switch" id="layerSwitch">
-              <button class="on" data-layer="all">All</button>
-              <button data-layer="ktm">KTM</button>
-              <button data-layer="lrt">LRT</button>
-              <button data-layer="mrt">MRT</button>
-              <button data-layer="bus">Bus</button>
-            </div>
-            <div class="map-stat essential">
-              <span class="pulse"></span>
-              <span><span style="color:var(--green);font-weight:600" id="liveMapCount">0</span> verified live</span>
-            </div>
-          </div>
-
-          <!-- BASEMAP LAYER CONTROL (top-right) -->
-          <div class="basemap-control" id="basemapControl">
-            <button class="basemap-btn active" data-basemap="osm" title="OpenStreetMap">
-              <i data-lucide="map"></i>
-              <span class="bm-label">OSM</span>
-            </button>
-            <button class="basemap-btn" data-basemap="sat" title="Google Earth (Satellite)">
-              <i data-lucide="globe"></i>
-              <span class="bm-label">Satellite</span>
-            </button>
-            <button class="basemap-btn" data-basemap="hybrid" title="Hybrid (Satellite + Labels)">
-              <i data-lucide="layers"></i>
-              <span class="bm-label">Hybrid</span>
-            </button>
-          </div>
-
-          <div data-map-host style="flex:1; min-height:0; position:relative"></div>
-
+      <section class="view" id="view-livemap" aria-labelledby="mapTitle">
+        <div class="card map-view-card fade-in">
+          <div class="map-view-heading"><div><div class="eyebrow">Prototype station and route visualisation</div><h2 id="mapTitle">Transit Map</h2></div><span class="pill static">OpenStreetMap · Static network</span></div>
+          <div class="map-overlay-top"><div class="layer-switch" id="layerSwitch" aria-label="Transit layer filter"><button class="on" data-layer="all">All</button><button data-layer="ktm">KTM</button><button data-layer="lrt">LRT</button><button data-layer="mrt">MRT</button><button data-layer="bus">Bus</button></div></div>
+          <div data-map-host class="map-host"></div>
           <div class="map-controls">
-            <button class="map-ctrl-btn" onclick="resetMapView()" title="Reset view"><i data-lucide="home" style="width:16px;height:16px"></i></button>
-            <button class="map-ctrl-btn" onclick="map.zoomIn()"><i data-lucide="plus" style="width:16px;height:16px"></i></button>
-            <button class="map-ctrl-btn" onclick="map.zoomOut()"><i data-lucide="minus" style="width:16px;height:16px"></i></button>
-            <button class="map-ctrl-btn" onclick="locateUser()" title="My location"><i data-lucide="locate" style="width:16px;height:16px"></i></button>
+            <button class="map-ctrl-btn" onclick="resetMapView()" aria-label="Reset map view"><i data-lucide="home"></i></button>
+            <button class="map-ctrl-btn" onclick="map.zoomIn()" aria-label="Zoom in"><i data-lucide="plus"></i></button>
+            <button class="map-ctrl-btn" onclick="map.zoomOut()" aria-label="Zoom out"><i data-lucide="minus"></i></button>
+            <button class="map-ctrl-btn" onclick="locateUser()" aria-label="Find nearest station"><i data-lucide="locate"></i></button>
           </div>
         </div>
       </section>
 
-      <!-- ========== VIEW: NEAREST STATION ========== -->
-      <section class="view" id="view-nearest">
-        <div class="view-scroll touch-scroll">
-          <div class="grid grid-cols-12 gap-4">
-            <div class="col-span-12 lg:col-span-5 fade-in">
-              <div class="card" style="margin-bottom:14px">
-                <div class="card-head">
-                  <div class="card-title"><i data-lucide="locate" style="width:15px;height:15px;color:var(--accent)"></i>Your Location</div>
-                </div>
-                <div style="padding:16px">
-                  <div id="geoStatus" style="padding:14px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:10px">
-                    <i data-lucide="map-pin" style="width:16px;height:16px;color:var(--mrt);flex-shrink:0"></i>
-                    <span>Click below to detect your location</span>
-                  </div>
-                  <button class="btn-primary" style="width:100%;margin-top:12px" onclick="detectLocation()">
-                    <i data-lucide="crosshair" style="width:14px;height:14px"></i>Detect My Location
-                  </button>
-                  <div style="margin-top:14px;display:flex;gap:8px">
-                    <input type="number" class="input" id="bufferRadius" value="1500" min="500" max="3000" step="100" style="flex:1" />
-                    <button class="btn-ghost" onclick="searchNearby()">Search</button>
-                  </div>
-                  <div style="font-size:11px;color:var(--muted-2);margin-top:8px">Buffer radius in meters (500m - 3km)</div>
-                </div>
-              </div>
-              <div class="card">
-                <div class="card-head">
-                  <div class="card-title"><i data-lucide="list" style="width:15px;height:15px;color:var(--accent)"></i>Top 3 Nearest Stations</div>
-                </div>
-                <div id="nearestList" style="padding:12px; max-height:400px; overflow-y:auto" class="touch-scroll">
-                  <div style="text-align:center;color:var(--muted);font-size:13px;padding:30px 10px">
-                    <i data-lucide="search" style="width:32px;height:32px;margin-bottom:10px;opacity:0.4"></i>
-                    <div>Detect your location to find nearby stations</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-span-12 lg:col-span-7 card fade-in" style="animation-delay:0.1s; min-height:500px; position:relative">
-              <div data-map-host style="position:absolute; inset:0"></div>
-            </div>
+      <section class="view" id="view-nearest" aria-labelledby="nearestTitle">
+        <div class="view-scroll touch-scroll"><div class="grid grid-cols-12 gap-4">
+          <div class="col-span-12 lg:col-span-5 fade-in">
+            <article class="card"><div class="card-head"><div class="card-title"><i data-lucide="locate"></i><span id="nearestTitle">Nearest Station</span></div><span class="pill static">GTFS Static</span></div>
+              <div class="card-body"><p>Your location is requested only after you choose to detect it. It is used in this browser and is not stored.</p><div id="geoStatus" class="notice">Choose “Use My Location” to begin.</div><button class="btn-primary full-width" onclick="detectLocation()"><i data-lucide="crosshair"></i>Use My Location</button>
+                <label class="lbl" for="bufferRadius">Search radius (500 m to 3 km)</label><div class="inline-control"><input type="number" class="input" id="bufferRadius" value="1500" min="500" max="3000" step="100" /><button class="btn-ghost" onclick="searchNearby()">Search</button></div><p class="source-meta">Results use approximate straight-line distance, not walking-route distance.</p></div>
+            </article>
+            <article class="card result-card"><div class="card-head"><div class="card-title"><i data-lucide="list"></i>Nearby stations</div></div><div id="nearestList" class="card-body"><div class="data-empty">Detect your location to find nearby stations.</div></div></article>
           </div>
-        </div>
+          <article class="col-span-12 lg:col-span-7 card map-panel fade-in"><div data-map-host class="map-host"></div></article>
+        </div></div>
       </section>
 
-      <!-- ========== VIEW: TRIP PLANNER ========== -->
-      <section class="view" id="view-planner">
-        <div class="view-scroll touch-scroll">
-          <div class="grid grid-cols-12 gap-4">
-            <div class="col-span-12 lg:col-span-4 fade-in">
-              <div class="card" style="padding:18px; margin-bottom:14px">
-                <div class="card-title" style="margin-bottom:14px">
-                  <i data-lucide="route" style="width:16px;height:16px;color:var(--accent)"></i>Plan Your Trip
-                </div>
-                <div style="position:relative; display:flex; flex-direction:column; gap:8px">
-                  <div style="position:absolute;left:22px;top:38px;bottom:38px;width:2px;background:repeating-linear-gradient(to bottom,var(--border-strong) 0,var(--border-strong) 3px,transparent 3px,transparent 6px)"></div>
-                  <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px">
-                    <div style="width:22px;height:22px;border-radius:6px;display:grid;place-items:center;background:rgba(45,212,168,0.15);color:var(--green);flex-shrink:0">
-                      <i data-lucide="circle" style="width:10px;height:10px"></i>
-                    </div>
-                    <input type="text" id="planFrom" class="input" style="border:none;background:transparent;padding:0" placeholder="From" />
-                  </div>
-                  <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px">
-                    <div style="width:22px;height:22px;border-radius:6px;display:grid;place-items:center;background:rgba(255,77,109,0.15);color:var(--red);flex-shrink:0">
-                      <i data-lucide="square" style="width:10px;height:10px"></i>
-                    </div>
-                    <input type="text" id="planTo" class="input" style="border:none;background:transparent;padding:0" placeholder="To" />
-                  </div>
-                  <button onclick="swapPlanner()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);width:28px;height:28px;background:var(--panel);border:1px solid var(--border-strong);border-radius:8px;display:grid;place-items:center;color:var(--muted);cursor:pointer;transition:all 0.2s">
-                    <i data-lucide="arrow-up-down" style="width:13px;height:13px"></i>
-                  </button>
-                </div>
-                <div style="display:flex;gap:6px;margin:14px 0;flex-wrap:wrap">
-                  <button class="ghost-btn on planner-mode" data-mode="transit">Transit</button>
-                  <button class="ghost-btn planner-mode" data-mode="bus">Bus</button>
-                  <button class="ghost-btn planner-mode" data-mode="walk">Walk</button>
-                </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
-                  <div><label class="lbl">Depart</label><select class="input"><option>Now</option><option>Schedule</option></select></div>
-                  <div><label class="lbl">Preference</label><select class="input" id="planPref"><option value="fastest">Fastest</option><option value="cheapest">Cheapest</option><option value="fewest">Fewest transfers</option></select></div>
-                </div>
-                <button class="btn-primary" style="width:100%" onclick="planTrip()">
-                  <i data-lucide="search" style="width:14px;height:14px"></i>Find Route
-                </button>
-              </div>
-              <div class="card" id="routeResult" style="display:none">
-                <div class="card-head">
-                  <div class="card-title"><i data-lucide="navigation" style="width:15px;height:15px;color:var(--green)"></i>Route Found</div>
-                </div>
-                <div style="padding:16px; max-height:400px; overflow-y:auto" class="touch-scroll" id="routeResultBody"></div>
-              </div>
-            </div>
-            <div class="col-span-12 lg:col-span-8 card fade-in" style="animation-delay:0.1s; min-height:500px; position:relative">
-              <div data-map-host style="position:absolute; inset:0"></div>
-            </div>
+      <section class="view" id="view-planner" aria-labelledby="plannerTitle">
+        <div class="view-scroll touch-scroll"><div class="grid grid-cols-12 gap-4">
+          <div class="col-span-12 lg:col-span-4 fade-in">
+            <article class="card"><div class="card-head"><div class="card-title"><i data-lucide="route"></i><span id="plannerTitle">Prototype Trip Planner</span></div><span class="pill demo">Prototype</span></div><div class="card-body"><p>Detailed multimodal routing is under development. This prototype checks only a direct relationship in the loaded static dataset.</p>
+              <label class="lbl" for="planFrom">From station</label><input type="text" id="planFrom" class="input" list="stationOptions" placeholder="Choose a station" />
+              <label class="lbl" for="planTo">To station</label><input type="text" id="planTo" class="input" list="stationOptions" placeholder="Choose a station" /><datalist id="stationOptions"></datalist>
+              <div class="action-row"><button class="btn-ghost" onclick="swapPlanner()" aria-label="Swap stations"><i data-lucide="arrow-up-down"></i>Swap</button><button class="btn-primary" onclick="planTrip()"><i data-lucide="search"></i>Find Prototype Route</button></div></div></article>
+            <article class="card result-card" id="routeResult" hidden><div class="card-head"><div class="card-title" id="routeResultTitle"><i data-lucide="navigation"></i>Prototype result</div></div><div class="card-body" id="routeResultBody"></div></article>
           </div>
-        </div>
+          <article class="col-span-12 lg:col-span-8 card map-panel fade-in"><div data-map-host class="map-host"></div></article>
+        </div></div>
       </section>
 
-      <!-- ========== VIEW: SCHEDULES ========== -->
-      <section class="view" id="view-schedules">
-        <div class="view-scroll touch-scroll">
-          <div class="grid grid-cols-12 gap-4">
-            <div class="col-span-12 lg:col-span-3 fade-in">
-              <div class="card" style="padding:18px; margin-bottom:14px">
-                <div class="card-title" style="margin-bottom:14px"><i data-lucide="sliders" style="width:16px;height:16px;color:var(--accent)"></i>Filter Timetable</div>
-                <div style="margin-bottom:12px"><label class="lbl">Transport Mode</label><select class="input" id="schedMode" onchange="updateScheduleFilter()"><option value="ktm">KTM Komuter</option><option value="lrt">LRT</option><option value="mrt">MRT</option><option value="bus">Bus</option></select></div>
-                <div style="margin-bottom:12px"><label class="lbl">Line</label><select class="input" id="schedLine" onchange="updateScheduleFilter()"></select></div>
-                <div style="margin-bottom:12px"><label class="lbl">Station</label><select class="input" id="schedStation" onchange="renderSchedule()"></select></div>
-                <div style="margin-bottom:12px"><label class="lbl">Direction</label><select class="input" id="schedDir" onchange="renderSchedule()"><option value="0">Inbound</option><option value="1">Outbound</option></select></div>
-                <div style="display:flex;gap:6px">
-                  <button class="ghost-btn on sched-day" data-day="weekday" onclick="setDay(this)">Weekday</button>
-                  <button class="ghost-btn sched-day" data-day="weekend" onclick="setDay(this)">Weekend</button>
-                </div>
-              </div>
-            </div>
-            <div class="col-span-12 lg:col-span-9 card fade-in" style="animation-delay:0.1s">
-              <div class="card-head">
-                <div class="card-title"><i data-lucide="clock" style="width:15px;height:15px;color:var(--accent)"></i><span id="schedTitle">Timetable</span></div>
-                <input type="text" class="input" id="schedSearch" placeholder="Search time..." style="max-width:200px;padding:6px 12px;font-size:12px" oninput="renderSchedule()" />
-              </div>
-              <div style="padding:18px; overflow-x:auto" class="touch-scroll" id="schedGridWrap"></div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <section class="view" id="view-schedules" aria-labelledby="scheduleHeading"><div class="view-scroll touch-scroll"><div class="grid grid-cols-12 gap-4">
+        <article class="col-span-12 lg:col-span-4 card fade-in"><div class="card-head"><div class="card-title"><i data-lucide="clock"></i><span id="scheduleHeading">Prototype Timetable</span></div><span class="pill scheduled">Scheduled static</span></div><div class="card-body"><p>GTFS schedule integration is being validated. Times shown are scheduled data, not realtime arrivals.</p><label class="lbl" for="schedMode">Transport mode</label><select class="input" id="schedMode" onchange="updateScheduleFilter()"><option value="ktm">KTM Komuter</option><option value="lrt">LRT</option><option value="mrt">MRT</option><option value="bus">Bus</option></select><label class="lbl" for="schedStation">Station</label><select class="input" id="schedStation" onchange="renderSchedule()"></select></div></article>
+        <article class="col-span-12 lg:col-span-8 card fade-in"><div class="card-head"><div class="card-title"><i data-lucide="calendar-clock"></i><span id="schedTitle">Scheduled departures</span></div></div><div class="card-body" id="schedGridWrap"><div class="data-empty">Select a station to view scheduled static data.</div></div></article>
+      </div></div></section>
 
-      <!-- ========== VIEW: ALERTS ========== -->
-      <section class="view" id="view-alerts">
-        <div class="view-scroll touch-scroll">
-          <div class="grid grid-cols-12 gap-4">
-            <div class="col-span-12 lg:col-span-3 fade-in">
-              <div class="card" style="padding:14px; margin-bottom:14px">
-                <div class="card-title" style="margin-bottom:12px"><i data-lucide="filter" style="width:15px;height:15px;color:var(--accent)"></i>Categories</div>
-                <div style="display:flex;flex-direction:column;gap:6px" id="alertCats">
-                  <button class="ghost-btn on alert-cat" data-cat="all" onclick="filterAlerts(this)" style="justify-content:flex-start;text-align:left">All Alerts <span style="margin-left:auto;color:var(--muted)">0</span></button>
-                  <button class="ghost-btn alert-cat" data-cat="delay" onclick="filterAlerts(this)" style="justify-content:flex-start;text-align:left"><span style="width:8px;height:8px;background:var(--yellow);border-radius:50%"></span>Service Delay <span style="margin-left:auto;color:var(--muted)">0</span></button>
-                  <button class="ghost-btn alert-cat" data-cat="breakdown" onclick="filterAlerts(this)" style="justify-content:flex-start;text-align:left"><span style="width:8px;height:8px;background:var(--red);border-radius:50%"></span>Technical Breakdown <span style="margin-left:auto;color:var(--muted)">0</span></button>
-                  <button class="ghost-btn alert-cat" data-cat="weather" onclick="filterAlerts(this)" style="justify-content:flex-start;text-align:left"><span style="width:8px;height:8px;background:var(--mrt);border-radius:50%"></span>Weather Warning <span style="margin-left:auto;color:var(--muted)">0</span></button>
-                </div>
-                <hr style="border:none;border-top:1px solid var(--border);margin:14px 0" />
-                <div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.1em">Subscribed Lines</div>
-                <div style="display:flex;flex-wrap:wrap;gap:4px">
-                  <span class="line-tag ktm"><span class="dot"></span>KTM</span>
-                  <span class="line-tag lrt"><span class="dot"></span>LRT KJ</span>
-                  <span class="line-tag mrt"><span class="dot"></span>MRT KG</span>
-                </div>
-              </div>
-            </div>
-            <div class="col-span-12 lg:col-span-9 card fade-in" style="animation-delay:0.1s">
-              <div class="card-head">
-                <div class="card-title"><i data-lucide="bell" style="width:15px;height:15px;color:var(--accent)"></i>Active Alerts</div>
-                <span class="pill offline" id="alertCount">0 active</span>
-              </div>
-              <div style="padding:16px; max-height:600px; overflow-y:auto" class="touch-scroll" id="alertList"></div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <section class="view" id="view-alerts"><div class="view-scroll touch-scroll"><div class="coming-soon-host" data-coming-soon="alerts"></div></div></section>
+      <section class="view" id="view-fares"><div class="view-scroll touch-scroll"><div class="coming-soon-host" data-coming-soon="fares"></div></div></section>
+      <section class="view" id="view-parkride"><div class="view-scroll touch-scroll"><div class="coming-soon-host" data-coming-soon="parkride"></div></div></section>
+      <section class="view" id="view-account"><div class="view-scroll touch-scroll"><div class="coming-soon-host" data-coming-soon="account"></div></div></section>
 
-      <!-- ========== VIEW: FARES & PASSES ========== -->
-      <section class="view" id="view-fares">
-        <div class="view-scroll touch-scroll">
-          <div class="grid grid-cols-12 gap-4">
-            <div class="col-span-12 lg:col-span-5 card fade-in">
-              <div class="card-head"><div class="card-title"><i data-lucide="calculator" style="width:15px;height:15px;color:var(--accent)"></i>Fare Calculator</div></div>
-              <div style="padding:18px">
-                <div style="margin-bottom:12px"><label class="lbl">From Station</label><select class="input" id="fareFrom"></select></div>
-                <div style="margin-bottom:12px"><label class="lbl">To Station</label><select class="input" id="fareTo"></select></div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
-                  <div><label class="lbl">Mode</label><select class="input" id="fareMode"><option value="ktm">KTM Komuter</option><option value="lrt">LRT</option><option value="mrt">MRT</option><option value="bus">Bus</option></select></div>
-                  <div><label class="lbl">Concession</label><select class="input" id="fareConc"><option value="adult">Adult</option><option value="student">Student</option><option value="senior">Senior (60+)</option><option value="disabled">OKU</option></select></div>
-                </div>
-                <button class="btn-primary" style="width:100%" onclick="calcFare()"><i data-lucide="calculator" style="width:14px;height:14px"></i>Calculate Fare</button>
-              </div>
-              <div id="fareResult" style="padding:0 18px 18px"></div>
-            </div>
-            <div class="col-span-12 lg:col-span-7 fade-in" style="animation-delay:0.1s">
-              <div class="card" style="margin-bottom:14px">
-                <div class="card-head"><div class="card-title"><i data-lucide="credit-card" style="width:15px;height:15px;color:var(--accent)"></i>Monthly Passes</div></div>
-                <div style="padding:18px; display:grid; grid-template-columns:1fr 1fr; gap:12px">
-                  <div style="padding:18px;background:linear-gradient(135deg,rgba(255,122,26,0.15),rgba(255,77,109,0.05));border:1px solid rgba(255,122,26,0.3);border-radius:14px;position:relative;overflow:hidden">
-                    <div style="font-size:11px;color:var(--accent);letter-spacing:0.15em;text-transform:uppercase;font-weight:600">Unavailable</div>
-                    <div style="font-size:24px;font-weight:700;margin:8px 0 4px">Pas My50</div>
-                    <div style="font-size:13px;color:var(--muted);margin-bottom:14px">Official product data not integrated</div>
-                    <div style="font-size:32px;font-weight:600">—</div>
-                    <button class="btn-primary" style="width:100%;margin-top:14px" onclick="toast('My50 pass application started','credit-card')">Subscribe</button>
-                  </div>
-                  <div style="padding:18px;background:var(--panel-2);border:1px solid var(--border);border-radius:14px">
-                    <div style="font-size:11px;color:var(--mrt);letter-spacing:0.15em;text-transform:uppercase;font-weight:600">Family</div>
-                    <div style="font-size:24px;font-weight:700;margin:8px 0 4px">Pass data unavailable</div>
-                    <div style="font-size:13px;color:var(--muted);margin-bottom:14px">Up to 4 family members, weekend unlimited</div>
-                    <div style="font-size:32px;font-weight:600">—</div>
-                    <button class="btn-ghost" style="width:100%;margin-top:14px" onclick="toast('Family pass info opened','users')">Learn More</button>
-                  </div>
-                </div>
-              </div>
-              <div class="card">
-                <div class="card-head"><div class="card-title"><i data-lucide="users" style="width:15px;height:15px;color:var(--accent)"></i>Concession Cards</div></div>
-                <div style="padding:14px 18px">
-                  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-                    <div style="padding:14px;background:var(--panel-2);border-radius:10px;border:1px solid var(--border)"><div style="font-size:13px;font-weight:600;margin-bottom:4px">Students</div><div style="font-size:11px;color:var(--muted);margin-bottom:8px">Verify with operator</div><div style="font-size:18px;font-weight:600">Unavailable</div></div>
-                    <div style="padding:14px;background:var(--panel-2);border-radius:10px;border:1px solid var(--border)"><div style="font-size:13px;font-weight:600;margin-bottom:4px">Senior Citizens</div><div style="font-size:11px;color:var(--muted);margin-bottom:8px">Verify with operator</div><div style="font-size:18px;font-weight:600">Unavailable</div></div>
-                    <div style="padding:14px;background:var(--panel-2);border-radius:10px;border:1px solid var(--border)"><div style="font-size:13px;font-weight:600;margin-bottom:4px">OKU / Disabled</div><div style="font-size:11px;color:var(--muted);margin-bottom:8px">Verify with operator</div><div style="font-size:18px;font-weight:600">Unavailable</div></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <section class="view" id="view-help" aria-labelledby="helpTitle"><div class="view-scroll touch-scroll"><div class="grid grid-cols-12 gap-4">
+        <article class="col-span-12 lg:col-span-5 card fade-in"><div class="card-head"><div class="card-title"><i data-lucide="help-circle"></i><span id="helpTitle">Help & Support</span></div></div><div class="card-body prose"><h3>About this project</h3><p>Selangor Mobility Navigator is an independent portfolio Web GIS prototype for exploring public-transport geography across Selangor and the Klang Valley.</p><h3>Using the map</h3><p>Use the map filters to show or hide transport modes. Open Nearest Station and explicitly allow location access to calculate approximate straight-line distances.</p><h3>Data limitations</h3><p>Static schedules are not realtime arrivals. Trip results are not official journey recommendations. Fare, service-alert, parking-occupancy and account integrations are not active.</p></div></article>
+        <article class="col-span-12 lg:col-span-7 card fade-in"><div class="card-head"><div class="card-title"><i data-lucide="info"></i>Independent-project disclaimer</div><span class="pill demo">Public Prototype</span></div><div class="card-body prose"><p>Selangor Mobility Navigator is not affiliated with KTMB, Prasarana, Rapid KL, MRT Corp or any government agency.</p><p>Some modules use prototype, static or demonstration data while verified public-data integration is in progress.</p><button class="btn-primary" onclick="switchView('status')">Review Data Status</button></div></article>
+      </div></div></section>
 
-      <!-- ========== VIEW: PARK & RIDE ========== -->
-      <section class="view" id="view-parkride">
-        <div class="view-scroll touch-scroll">
-          <div class="grid grid-cols-12 gap-4">
-            <div class="col-span-12 lg:col-span-5 fade-in">
-              <div class="card">
-                <div class="card-head">
-                  <div class="card-title"><i data-lucide="parking-square" style="width:15px;height:15px;color:var(--accent)"></i>Park & Ride Facilities</div>
-                  <span class="pill unavailable">Unavailable</span>
-                </div>
-                <div style="padding:14px; max-height:600px; overflow-y:auto" class="touch-scroll" id="prList"></div>
-              </div>
-            </div>
-            <div class="col-span-12 lg:col-span-7 card fade-in" style="animation-delay:0.1s; min-height:600px; position:relative">
-              <div data-map-host style="position:absolute; inset:0"></div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <section class="view" id="view-feedback" aria-labelledby="feedbackTitle"><div class="view-scroll touch-scroll"><article class="card centered-card fade-in"><div class="coming-icon"><i data-lucide="message-square"></i></div><div class="eyebrow">Public issue tracker</div><h2 id="feedbackTitle">Feedback</h2><p>Report bugs, data concerns or suggestions through the public GitHub Issues page. No form data is collected by this prototype.</p><a class="btn-primary" target="_blank" rel="noopener noreferrer" href="https://github.com/cko99/selangor-mobility-navigator/issues"><i data-lucide="github"></i>Open GitHub Issues</a></article></div></section>
 
-      <!-- ========== VIEW: SETTINGS ========== -->
-      <section class="view" id="view-settings">
-        <div class="view-scroll touch-scroll">
-          <div class="grid grid-cols-12 gap-4">
-            <div class="col-span-12 lg:col-span-6 card fade-in">
-              <div class="card-head"><div class="card-title"><i data-lucide="sliders" style="width:15px;height:15px;color:var(--accent)"></i>Preferred Transit Modes</div></div>
-              <div style="padding:18px">
-                <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Prioritize these modes when computing routes in Trip Planner</div>
-                <div style="display:flex;flex-direction:column;gap:10px">
-                  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px"><div style="display:flex;align-items:center;gap:10px;min-width:0"><span class="line-tag ktm"><span class="dot"></span>KTM Komuter</span></div><div class="switch on" onclick="toggleSwitch(this)"></div></div>
-                  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px"><div style="display:flex;align-items:center;gap:10px;min-width:0"><span class="line-tag lrt"><span class="dot"></span>LRT</span></div><div class="switch on" onclick="toggleSwitch(this)"></div></div>
-                  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px"><div style="display:flex;align-items:center;gap:10px;min-width:0"><span class="line-tag mrt"><span class="dot"></span>MRT</span></div><div class="switch on" onclick="toggleSwitch(this)"></div></div>
-                  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px"><div style="display:flex;align-items:center;gap:10px;min-width:0"><span class="line-tag bus"><span class="dot"></span>Bus</span></div><div class="switch" onclick="toggleSwitch(this)"></div></div>
-                </div>
-              </div>
-            </div>
-            <div class="col-span-12 lg:col-span-6 card fade-in" style="animation-delay:0.05s">
-              <div class="card-head"><div class="card-title"><i data-lucide="bell" style="width:15px;height:15px;color:var(--accent)"></i>Notification Subscriptions</div></div>
-              <div style="padding:18px">
-                <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Receive alerts only for the lines you subscribe to</div>
-                <div style="display:flex;flex-direction:column;gap:10px">
-                  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px"><div style="font-size:13px;font-weight:500">KTM Port Klang Line</div><div class="switch on" onclick="toggleSwitch(this)"></div></div>
-                  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px"><div style="font-size:13px;font-weight:500">KTM Seremban Line</div><div class="switch" onclick="toggleSwitch(this)"></div></div>
-                  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px"><div style="font-size:13px;font-weight:500">LRT Kelana Jaya Line</div><div class="switch on" onclick="toggleSwitch(this)"></div></div>
-                  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px"><div style="font-size:13px;font-weight:500">MRT Kajang Line</div><div class="switch on" onclick="toggleSwitch(this)"></div></div>
-                  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px"><div style="font-size:13px;font-weight:500">Weather alerts</div><div class="switch on" onclick="toggleSwitch(this)"></div></div>
-                </div>
-              </div>
-            </div>
-            <div class="col-span-12 lg:col-span-6 card fade-in" style="animation-delay:0.1s">
-              <div class="card-head"><div class="card-title"><i data-lucide="palette" style="width:15px;height:15px;color:var(--accent)"></i>Map Display Theme</div></div>
-              <div style="padding:18px">
-                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-                  <div class="theme-opt" data-theme="dark" onclick="setMapTheme('dark', this)" style="cursor:pointer;padding:14px;background:var(--panel-2);border:2px solid var(--accent);border-radius:12px;text-align:center">
-                    <div style="height:60px;background:linear-gradient(135deg,#0a0e14,#1a2230);border-radius:8px;margin-bottom:8px;border:1px solid var(--border)"></div>
-                    <div style="font-size:12px;font-weight:600">Dark Mode</div>
-                    <div style="font-size:10px;color:var(--muted);margin-top:2px">Night commuting</div>
-                  </div>
-                  <div class="theme-opt" data-theme="light" onclick="setMapTheme('light', this)" style="cursor:pointer;padding:14px;background:var(--panel-2);border:1px solid var(--border);border-radius:12px;text-align:center">
-                    <div style="height:60px;background:linear-gradient(135deg,#f5f5f5,#e0e0e0);border-radius:8px;margin-bottom:8px"></div>
-                    <div style="font-size:12px;font-weight:600">Light Mode</div>
-                    <div style="font-size:10px;color:var(--muted);margin-top:2px">Daytime use</div>
-                  </div>
-                  <div class="theme-opt" data-theme="sat" onclick="setMapTheme('sat', this)" style="cursor:pointer;padding:14px;background:var(--panel-2);border:1px solid var(--border);border-radius:12px;text-align:center">
-                    <div style="height:60px;background:linear-gradient(135deg,#2d4a2b,#1a3010);border-radius:8px;margin-bottom:8px;position:relative;overflow:hidden"></div>
-                    <div style="font-size:12px;font-weight:600">Satellite</div>
-                    <div style="font-size:10px;color:var(--muted);margin-top:2px">Aerial view</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-span-12 lg:col-span-6 card fade-in" style="animation-delay:0.15s">
-              <div class="card-head"><div class="card-title"><i data-lucide="home" style="width:15px;height:15px;color:var(--accent)"></i>Saved Locations</div></div>
-              <div style="padding:18px">
-                <div style="margin-bottom:14px"><label class="lbl">Home</label><input type="text" class="input" placeholder="Not configured" /></div>
-                <div style="margin-bottom:14px"><label class="lbl">Work</label><input type="text" class="input" placeholder="Not configured" /></div>
-                <div style="margin-bottom:14px"><label class="lbl">Frequent Destination</label><input type="text" class="input" placeholder="Add another..." /></div>
-                <button class="btn-primary" onclick="toast('Saved locations updated','check-circle')"><i data-lucide="save" style="width:14px;height:14px"></i>Save Locations</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ========== VIEW: ACCOUNT ========== -->
-      <section class="view" id="view-account">
-        <div class="view-scroll touch-scroll">
-          <div class="grid grid-cols-12 gap-4">
-            <div class="col-span-12 lg:col-span-4 card fade-in">
-              <div style="padding:24px;text-align:center;background:linear-gradient(135deg,rgba(255,122,26,0.1),rgba(0,212,255,0.05));border-bottom:1px solid var(--border)">
-                <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#00d4ff,#2dd4a8);display:grid;place-items:center;font-size:30px;font-weight:700;color:#0a0e14;margin:0 auto 12px">AR</div>
-                <div style="font-size:18px;font-weight:600">Account unavailable</div>
-                <div style="font-size:13px;color:var(--muted);margin-top:2px">No profile data stored</div>
-                <div style="margin-top:8px;display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(255,122,26,0.15);border-radius:99px;font-size:11px;color:var(--accent);font-weight:600">Unavailable</div>
-              </div>
-              <div style="padding:18px">
-                <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px">Connected Cards</div>
-                <div style="padding:14px;background:linear-gradient(135deg,#1a2230,#0f141c);border:1px solid var(--border-strong);border-radius:12px;margin-bottom:8px;position:relative;overflow:hidden">
-                  <div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:11px;color:var(--muted)">Payment data</div><div style="font-size:20px;font-weight:600;margin-top:4px">Unavailable</div></div></div>
-                  <div style="margin-top:14px;display:flex;justify-content:space-between;font-size:11px;color:var(--muted-2)"><span class="mono">**** 4823</span><span>MyDebit</span></div>
-                </div>
-                <div style="padding:14px;background:linear-gradient(135deg,#1a2230,#0f141c);border:1px solid var(--border-strong);border-radius:12px;position:relative;overflow:hidden">
-                  <div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:11px;color:var(--muted)">Transit pass</div><div style="font-size:13px;font-weight:500;margin-top:4px">Unavailable</div></div></div>
-                  <div style="margin-top:14px;font-size:11px;color:var(--muted-2)">No account data stored</div>
-                </div>
-                <button class="btn-ghost" style="width:100%;margin-top:12px" onclick="toast('Add card flow opened','plus-circle')"><i data-lucide="plus" style="width:14px;height:14px"></i>Add Payment Method</button>
-              </div>
-            </div>
-            <div class="col-span-12 lg:col-span-8 card fade-in" style="animation-delay:0.1s">
-              <div class="card-head"><div class="card-title"><i data-lucide="bar-chart-3" style="width:15px;height:15px;color:var(--accent)"></i>Your Travel Stats (This Month)</div></div>
-              <div style="padding:18px">
-                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px">
-                  <div class="stat-mini"><div class="lbl">Total Trips</div><div class="val">—</div></div>
-                  <div class="stat-mini"><div class="lbl">Time Saved</div><div class="val">—</div></div>
-                  <div class="stat-mini"><div class="lbl">CO₂ Saved</div><div class="val">—</div></div>
-                  <div class="stat-mini"><div class="lbl">Spent</div><div class="val">—</div></div>
-                </div>
-                <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px">Recent Trips</div>
-                <div id="recentTrips" style="display:flex;flex-direction:column;gap:6px; max-height:400px; overflow-y:auto" class="touch-scroll"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ========== VIEW: HELP ========== -->
-      <section class="view" id="view-help">
-        <div class="view-scroll touch-scroll">
-          <div class="grid grid-cols-12 gap-4">
-            <div class="col-span-12 lg:col-span-4 fade-in">
-              <div class="card" style="padding:18px; margin-bottom:14px">
-                <div class="card-title" style="margin-bottom:14px"><i data-lucide="phone" style="width:16px;height:16px;color:var(--accent)"></i>Emergency Hotlines</div>
-                <div style="display:flex;flex-direction:column;gap:8px">
-                  <div style="padding:12px 14px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;gap:12px"><div style="width:34px;height:34px;border-radius:8px;background:rgba(255,77,109,0.12);color:var(--red);display:grid;place-items:center;flex-shrink:0"><i data-lucide="phone-call" style="width:16px;height:16px"></i></div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">Transit Emergency</div><div style="font-size:11px;color:var(--muted)">Rapid KL Operations Centre</div></div><div class="mono" style="font-size:14px;color:var(--accent);font-weight:600;white-space:nowrap">03-7885 0199</div></div>
-                  <div style="padding:12px 14px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;gap:12px"><div style="width:34px;height:34px;border-radius:8px;background:rgba(255,210,63,0.12);color:var(--yellow);display:grid;place-items:center;flex-shrink:0"><i data-lucide="shield" style="width:16px;height:16px"></i></div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">Polis Diraja Malaysia</div><div style="font-size:11px;color:var(--muted)">Emergency response</div></div><div class="mono" style="font-size:14px;color:var(--accent);font-weight:600;white-space:nowrap">999</div></div>
-                  <div style="padding:12px 14px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;gap:12px"><div style="width:34px;height:34px;border-radius:8px;background:rgba(0,212,255,0.12);color:var(--mrt);display:grid;place-items:center;flex-shrink:0"><i data-lucide="heart-pulse" style="width:16px;height:16px"></i></div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">Medical Emergency</div><div style="font-size:11px;color:var(--muted)">Hospital Tengku Ampuan Rahmah</div></div><div class="mono" style="font-size:14px;color:var(--accent);font-weight:600;white-space:nowrap">03-3375 7888</div></div>
-                </div>
-              </div>
-              <div class="card" style="padding:18px">
-                <div class="card-title" style="margin-bottom:14px"><i data-lucide="info" style="width:16px;height:16px;color:var(--accent)"></i>Line Color Guide</div>
-                <div style="display:flex;flex-direction:column;gap:8px">
-                  <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="width:18px;height:6px;background:var(--ktm);border-radius:99px;flex-shrink:0"></span> KTM Komuter (Red)</div>
-                  <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="width:18px;height:6px;background:var(--lrt);border-radius:99px;flex-shrink:0"></span> LRT Kelana Jaya (Green)</div>
-                  <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="width:18px;height:6px;background:#7b2cbf;border-radius:99px;flex-shrink:0"></span> LRT Ampang / Sri Petaling (Purple)</div>
-                  <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="width:18px;height:6px;background:var(--mrt);border-radius:99px;flex-shrink:0"></span> MRT Kajang Line (Cyan)</div>
-                  <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="width:18px;height:6px;background:#ffd23f;border-radius:99px;flex-shrink:0"></span> MRT Putrajaya Line (Gold)</div>
-                  <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="width:18px;height:6px;background:#a3a3a3;border-radius:99px;flex-shrink:0"></span> Bus Network (Grey/Yellow)</div>
-                </div>
-              </div>
-            </div>
-            <div class="col-span-12 lg:col-span-8 card fade-in" style="animation-delay:0.1s">
-              <div class="card-head"><div class="card-title"><i data-lucide="help-circle" style="width:15px;height:15px;color:var(--accent)"></i>Frequently Asked Questions</div></div>
-              <div style="padding:18px; max-height:600px; overflow-y:auto" class="touch-scroll" id="faqList"></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ========== VIEW: FEEDBACK ========== -->
-      <section class="view" id="view-feedback">
-        <div class="view-scroll touch-scroll">
-          <div class="grid grid-cols-12 gap-4">
-            <div class="col-span-12 lg:col-span-7 card fade-in">
-              <div class="card-head"><div class="card-title"><i data-lucide="message-square" style="width:15px;height:15px;color:var(--accent)"></i>Submit Feedback</div></div>
-              <div style="padding:18px">
-                <div style="margin-bottom:12px">
-                  <label class="lbl">Feedback Type</label>
-                  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px" id="fbTypes">
-                    <button class="ghost-btn on" data-type="bug" onclick="pickFbType(this)" style="display:flex;flex-direction:column;gap:4px;padding:12px"><i data-lucide="bug" style="width:18px;height:18px"></i><span style="font-size:11px">App Bug</span></button>
-                    <button class="ghost-btn" data-type="station" onclick="pickFbType(this)" style="display:flex;flex-direction:column;gap:4px;padding:12px"><i data-lucide="building" style="width:18px;height:18px"></i><span style="font-size:11px">Station Issue</span></button>
-                    <button class="ghost-btn" data-type="suggestion" onclick="pickFbType(this)" style="display:flex;flex-direction:column;gap:4px;padding:12px"><i data-lucide="lightbulb" style="width:18px;height:18px"></i><span style="font-size:11px">Suggestion</span></button>
-                  </div>
-                </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-                  <div><label class="lbl">Station (if applicable)</label><select class="input" id="fbStation"><option value="">-- Select --</option></select></div>
-                  <div><label class="lbl">Severity</label><select class="input" id="fbSeverity"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="critical">Critical</option></select></div>
-                </div>
-                <div style="margin-bottom:12px"><label class="lbl">Description</label><textarea class="input" id="fbDesc" rows="5" placeholder="Please describe the issue in detail..."></textarea></div>
-                <div style="margin-bottom:14px"><label class="lbl">Attach Photo (optional)</label><div style="padding:24px;border:2px dashed var(--border-strong);border-radius:10px;text-align:center;color:var(--muted);cursor:pointer" onclick="toast('Photo upload opened','camera')"><i data-lucide="upload-cloud" style="width:24px;height:24px;margin-bottom:6px"></i><div style="font-size:12px">Click or drag a photo here</div></div></div>
-                <button class="btn-primary" onclick="submitFeedback()"><i data-lucide="send" style="width:14px;height:14px"></i>Submit Feedback</button>
-              </div>
-            </div>
-            <div class="col-span-12 lg:col-span-5 card fade-in" style="animation-delay:0.1s">
-              <div class="card-head"><div class="card-title"><i data-lucide="history" style="width:15px;height:15px;color:var(--accent)"></i>Your Previous Reports</div></div>
-              <div style="padding:14px; max-height:500px; overflow-y:auto" class="touch-scroll" id="prevReports"></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
+      <section class="view" id="view-status" aria-labelledby="statusTitle"><div class="view-scroll touch-scroll"><div class="grid grid-cols-12 gap-4">
+        <article class="col-span-12 card fade-in"><div class="card-head"><div class="card-title"><i data-lucide="database"></i><span id="statusTitle">Project & Data Status</span></div><span class="pill demo">v0.2.1</span></div><div class="card-body"><p>Sources and limitations are stated here so prototype behaviour is never mistaken for a production transport service.</p><div class="status-table-wrap"><table class="status-table"><thead><tr><th>Feature</th><th>Status</th><th>Source</th><th>Limitation</th></tr></thead><tbody id="projectStatusBody"></tbody></table></div></div></article>
+        <article class="col-span-12 lg:col-span-6 card fade-in"><div class="card-head"><div class="card-title"><i data-lucide="activity"></i>Runtime source status</div><button class="ghost-btn" onclick="refreshAll()">Retry sources</button></div><div class="card-body status-table-wrap"><table class="status-table"><thead><tr><th>Source</th><th>Status</th><th>Last updated</th><th>Limitation</th></tr></thead><tbody id="statusBody"></tbody></table></div></article>
+        <article class="col-span-12 lg:col-span-6 card fade-in"><div class="card-head"><div class="card-title"><i data-lucide="milestone"></i>Roadmap summary</div></div><div class="card-body prose"><p><strong>Current:</strong> static network discovery, nearest-station GIS flow and source-backed prototype schedule display.</p><p><strong>Next:</strong> validate GTFS Static coverage and schedule semantics before expanding realtime, weather and fare integrations.</p><p class="source-meta">No source timestamp is shown unless it is supplied by the dataset or response.</p></div></article>
+      </div></div></section>
     </div>
   </main>
 </div>
-
-<div class="toast-wrap" id="toastWrap"></div>
-
+<div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
 <script type="module" src="/assets/js/app.js"></script>
 </body>
 </html>
