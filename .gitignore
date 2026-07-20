@@ -1,0 +1,45 @@
+node_modules/
+dist/
+.wrangler/
+.cache/
+coverage/
+
+# Local configuration and Cloudflare secrets
+.env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+*.local
+
+# Logs and temporary files
+logs/
+*.log
+*.log.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Private keys and local certificates
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Editor and operating-system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+.vscode/
+.idea/
+
+# Original local design archive contains a hardcoded demo identity and is not
+# required by the production build. Keep it locally, but never publish it.
+REFERENCE DRAFT.html
+REFERENCE DRAFT.txt
+archive/

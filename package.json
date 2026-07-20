@@ -1,0 +1,34 @@
+{
+  "name": "selangor-mobility-navigator",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync:gtfs": "node scripts/sync-gtfs-static.mjs",
+    "validate:gtfs": "node scripts/validate-gtfs.mjs",
+    "build:data": "node scripts/build-transit-data.mjs",
+    "lint": "eslint assets/js functions scripts tests",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:api": "node scripts/test-api-routes.mjs",
+    "build": "vite build",
+    "dev": "vite",
+    "pages:dev": "wrangler pages dev dist --compatibility-date=2026-07-19"
+  },
+  "dependencies": {
+    "gtfs-realtime-bindings": "2.1.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20260719.1",
+    "@eslint/js": "9.39.5",
+    "csv-parse": "6.1.0",
+    "eslint": "9.39.5",
+    "fflate": "0.8.3",
+    "globals": "17.7.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.64.0",
+    "vite": "8.1.5",
+    "vitest": "4.1.10",
+    "wrangler": "4.112.0"
+  }
+}
