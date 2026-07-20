@@ -1,66 +1,115 @@
-# Selangor Mobility Navigator — Phase 2
+# Selangor Mobility Navigator
 
-Aplikasi Web GIS vanilla yang mengekalkan reka bentuk prototaip V1 tetapi menggunakan data awam rasmi melalui Cloudflare Pages Functions.
+**Status:** Public Prototype v0.2.1
+**Live site:** <https://selangor-mobility-navigator.pages.dev/>
 
-## Data
+## Overview
 
-- GTFS Static: KTMB, Prasarana rail, Rapid KL bus dan MRT feeder daripada data.gov.my.
-- GTFS Realtime: Vehicle Positions KTMB, Rapid KL bus dan MRT feeder sahaja.
-- Cuaca: ramalan dan warning MET Malaysia melalui data.gov.my.
-- Bahan api: harga mingguan Malaysia daripada Kementerian Kewangan melalui data.gov.my.
-- Peta: OpenStreetMap dengan atribusi kelihatan. Satellite/Hybrid disabled sehingga provider dikonfigurasi.
+Selangor Mobility Navigator is a responsive Web GIS portfolio prototype for understanding public-transport locations, nearby stations and scheduled journey information across Selangor and the Klang Valley.
 
-MRT/LRT rail tidak dilabel realtime. Trip Updates, transit Service Alerts, okupansi Park & Ride, AQI dan formula tambang rasmi tidak tersedia dalam Phase 2.
+## Problem
 
-## Jalankan secara lokal
+Public-transport information is often spread across operator sites, map products and datasets with different coverage and update cycles. This project explores how a single map-led interface can make the geography, nearby options and data limitations easier to understand without pretending to be an official journey service.
 
-Keperluan: Node.js 22 atau lebih baharu.
+## Current Working Features
 
-```powershell
+- OpenStreetMap transit map with visible attribution.
+- Static GTFS-derived station, route and shape visualisation.
+- Mode and route-layer filtering.
+- Explicit browser-geolocation flow with permission, timeout, unavailable and low-accuracy handling.
+- Nearest-station search from 500 m to 3 km using approximate straight-line distance.
+- Coordinate-gated Google Maps and Waze actions.
+- Direct static-route relationship prototype with a Google Maps fallback.
+- Prototype timetable derived from scheduled static data.
+- Visible Project & Data Status interface.
+- Responsive sidebar and stacked mobile layouts.
+
+## Prototype Modules
+
+- Trip Planner: direct static relationship demonstration only; no multimodal routing.
+- Timetable: scheduled static data; no realtime arrival or platform guarantee.
+- Vehicle feed: source status is checked, but positions are not displayed by default and no simulation is used.
+- Weather and fuel: integration status only in v0.2.1 public navigation.
+- Service Alerts, Fare Estimator, Park & Ride and Account: professional Coming Soon states.
+
+## Data Status
+
+| Feature | Status | Data type | Limitation |
+| --- | --- | --- | --- |
+| Transit stations | Prototype / integration in progress | GTFS Static | Coverage and station semantics remain under validation. |
+| Transit routes | Prototype / integration in progress | GTFS Static | Not an official journey recommendation. |
+| Vehicle positions | Not displayed by default | GTFS Realtime endpoint | Limited feed coverage; no system-wide claim and no demo simulation. |
+| Timetable | Prototype schedule | GTFS Static derived | Scheduled only; not realtime. |
+| Weather | Integration in progress | MET Malaysia forecast | Not a live observation or AQI. |
+| Fuel prices | Integration in progress | Weekly public dataset | Peninsular values, not station-level Selangor prices. |
+| Service alerts | Not integrated | None | No operator incident feed. |
+| Fare calculation | Coming Soon | Source not validated | Not for travel, fare or payment decisions. |
+| Park & Ride occupancy | Not available | None | No fabricated occupancy values. |
+| Authentication | Demo only | Guest browser session | No profile, payment or history storage. |
+
+## Technology Stack
+
+- HTML, CSS and modern JavaScript modules
+- Leaflet 1.9.4
+- OpenStreetMap tiles
+- Vite
+- TypeScript for Cloudflare Pages Functions
+- Vitest and ESLint
+- Cloudflare Pages and Pages Functions
+- GTFS Static processing scripts and GTFS Realtime bindings
+
+## Public Data Roadmap
+
+Planned validation and integration work includes:
+
+- GTFS Static;
+- verified stations;
+- verified routes;
+- scheduled departures;
+- GTFS Realtime;
+- official weather;
+- official fuel prices.
+
+The roadmap is conditional on source licensing, coverage, semantics and reliable update behaviour. No source will be presented as official or current until the implementation supports that claim.
+
+## Local Development
+
+Requirements: Node.js and npm.
+
+```bash
 npm install
-npm run sync:gtfs
+npm run dev
+```
+
+Validation:
+
+```bash
 npm run lint
 npm run typecheck
 npm run test
 npm run build
-npm run pages:dev -- --port 8788
 ```
 
-Buka `http://127.0.0.1:8788`. Gunakan Wrangler (`pages:dev`), bukan Vite sahaja, untuk menguji route `/api/*`.
+To exercise the production-style Pages Functions locally after building:
 
-Untuk ujian endpoint selepas server hidup:
-
-```powershell
-npm run test:api
+```bash
+npm run build
+npm run pages:dev
 ```
 
-`npm run build:data` membina semula JSON daripada ZIP yang sudah ada dalam `.cache/api-research`. `npm run sync:gtfs` memuat turun feed rasmi baharu, mengesahkan ZIP dan membina data.
+## Deployment
 
-## Deploy Cloudflare Pages
+The repository is connected to Cloudflare Pages. A push to a release branch creates a preview build when the Pages project is configured for branch previews; a push to `main` triggers the production build. The configured build output is `dist` and the public URL remains <https://selangor-mobility-navigator.pages.dev/>.
 
-1. Push repository ke penyedia Git yang disokong Cloudflare.
-2. Cipta projek Pages dan pilih repository.
-3. Build command: `npm run sync:gtfs && npm run build`.
-4. Build output directory: `dist`.
-5. Node version: 22+.
-6. Functions di bawah `functions/` akan dideploy secara automatik.
-7. Jadualkan rebuild harian selepas 04:00 Asia/Kuala_Lumpur supaya GTFS Static disegarkan. Alternatifnya, jalankan `npm run sync:gtfs`, commit output `public/data/transit`, kemudian deploy.
-8. Selepas deploy, uji `/api/health` dan jalankan suite endpoint dengan `SMN_API_BASE=https://<domain> npm run test:api`.
+Deployment success is verified separately from a local build. A passing local build alone does not prove that Cloudflare deployment succeeded.
 
-Tiada secret diperlukan. Jangan tambah proxy URL arbitrari atau proxy tile OSM.
+## Disclaimer
 
-## Struktur penting
+Selangor Mobility Navigator is an independent portfolio project. It is not affiliated with KTMB, Prasarana, Rapid KL, MRT Corp or any government agency.
 
-- `index.html` — markup UI yang diwarisi daripada V1.
-- `assets/css/app.css` — gaya asal dan status data.
-- `assets/js/` — state, map, UI, servis dan utiliti.
-- `functions/api/` — Pages Functions ber-allowlist.
-- `scripts/` — sync, proses, validasi GTFS dan endpoint smoke test.
-- `public/data/transit/` — artifak rasmi hasil preprocess.
-- `tests/` — unit/integration transformation tests.
-- `docs/` — audit API, matriks, keputusan dan status.
-- `archive/REFERENCE-DRAFT-V1.html` — sandaran byte-identik V1.
+Some modules currently use prototype, static or demonstration data while verified public-data integration is in progress. Do not use prototype routes, schedules or future fare estimates as official travel or payment guidance.
 
-## Polisi data dan privasi
+## Creator
 
-Lokasi tepat digunakan dalam browser untuk jarak Haversine dan tidak dihantar atau disimpan. Jarak dipaparkan sebagai anggaran garis lurus. Data external sentiasa di-escape sebelum dimasukkan ke markup. Demo location hanya digunakan selepas tindakan pengguna dan dilabel Demo.
+Luqman Abd Latif
+Geomatics and GIS
