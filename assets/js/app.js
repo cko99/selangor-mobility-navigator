@@ -8,6 +8,7 @@ import { requestLocation } from './services/locationService.js';
 import { haversineMeters } from './utils/distance.js';
 import { createGoogleMapsUrl, createWazeUrl } from './utils/navigationLinks.js';
 import { escapeHtml } from './utils/escape.js';
+import { appViewForPath } from './utils/routing.js';
 import { mountMap, renderNetwork } from './map.js';
 import { badge, sourceMeta, toast, unavailableCard, comingSoon } from './ui.js';
 
@@ -300,5 +301,6 @@ document.addEventListener('keydown', event => { if (event.key === 'Escape') clos
 preparePrototypeUi();
 renderRuntimeStatus();
 await initializeStatic();
+switchView(appViewForPath(window.location.pathname));
 await refreshAll();
 window.lucide?.createIcons();

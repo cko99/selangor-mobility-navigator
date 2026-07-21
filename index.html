@@ -1,174 +1,810 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Selangor Mobility Navigator — an independent Web GIS public prototype for transit discovery across Selangor and the Klang Valley." />
-  <meta name="theme-color" content="#0a0e14" />
-  <meta property="og:title" content="Selangor Mobility Navigator — Public Prototype v0.2.1" />
-  <meta property="og:description" content="Explore transit locations, nearby stations and scheduled journey information across Selangor and the Klang Valley." />
-  <title>Selangor Mobility Navigator · Public Prototype v0.2.1</title>
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-  <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <link rel="stylesheet" href="/assets/css/app.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Primary Meta Tags -->
+    <title>Selangor Mobility Navigator | Klang Valley Public Transport Web GIS</title>
+    <meta name="description" content="Explore nearby public transport, station locations and route information across Selangor and Klang Valley through a responsive Web GIS prototype." />
+    <link rel="canonical" href="https://selangor-mobility-navigator.pages.dev/" />
+    <meta name="author" content="Luqman Abd Latif" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="language" content="English" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://selangor-mobility-navigator.pages.dev/" />
+    <meta property="og:title" content="Selangor Mobility Navigator" />
+    <meta property="og:description" content="A responsive Web GIS prototype for understanding station locations, transit routes and nearby public transport across Selangor and Klang Valley." />
+    <meta property="og:image" content="https://selangor-mobility-navigator.pages.dev/social-preview.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Selangor Mobility Navigator interface showing transit map and station details." />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://selangor-mobility-navigator.pages.dev/" />
+    <meta name="twitter:title" content="Selangor Mobility Navigator" />
+    <meta name="twitter:description" content="A responsive Web GIS prototype for understanding station locations, transit routes and nearby public transport across Selangor and Klang Valley." />
+    <meta name="twitter:image" content="https://selangor-mobility-navigator.pages.dev/social-preview.png" />
+    <meta name="twitter:image:alt" content="Selangor Mobility Navigator interface showing transit map and station details." />
+
+    <style>
+        :root {
+            --bg-deep: #060914;
+            --bg-surface: #0d1320;
+            --bg-glass: rgba(16, 24, 40, 0.6);
+            --bg-glass-hover: rgba(20, 28, 46, 0.8);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --border-active: rgba(0, 229, 255, 0.5);
+            --orange: #ff6b00;
+            --orange-hover: #ff8533;
+            --cyan: #00e5ff;
+            --cyan-hover: #4defff;
+            --green: #4ade80;
+            --yellow: #facc15;
+            --red: #f87171;
+            --text: #ffffff;
+            --text-dim: #94a3b8;
+            --text-muted: #64748b;
+            --radius: 12px;
+            --transition: all 0.3s ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-deep);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Accessibility: Focus States */
+        a:focus-visible, button:focus-visible {
+            outline: 2px solid var(--cyan);
+            outline-offset: 3px;
+            border-radius: 4px;
+        }
+
+        /* Background GIS Grid */
+        .bg-decoration {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(circle at 50% 0%, black 0%, transparent 80%);
+            -webkit-mask-image: radial-gradient(circle at 50% 0%, black 0%, transparent 80%);
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+        section { padding: 5rem 0; position: relative; }
+        a { text-decoration: none; color: inherit; }
+
+        h1, h2, h3, h4 { letter-spacing: -0.02em; }
+        .mono { font-family: 'Cascadia Code', 'SFMono-Regular', Consolas, monospace; }
+        .text-center { text-align: center; }
+        .mt-2 { margin-top: 2rem; }
+        .mt-1 { margin-top: 1rem; }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            padding: 0.85rem 1.8rem; border-radius: var(--radius);
+            font-weight: 600; font-size: 0.95rem;
+            transition: var(--transition); cursor: pointer;
+            border: 1px solid transparent; min-height: 44px;
+        }
+        .btn-primary { background: var(--orange); color: #fff; }
+        .btn-primary:hover { background: var(--orange-hover); transform: translateY(-2px); }
+        .btn-ghost { background: var(--bg-glass); color: var(--text); border: 1px solid var(--border-glass); backdrop-filter: blur(10px); }
+        .btn-ghost:hover { border-color: var(--cyan); color: var(--cyan); }
+
+        /* Header */
+        header {
+            position: sticky; top: 0; z-index: 100;
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            background: rgba(6, 9, 20, 0.7);
+            border-bottom: 1px solid var(--border-glass);
+        }
+        .nav-wrapper { display: flex; justify-content: space-between; align-items: center; height: 72px; }
+        .logo { display: flex; align-items: center; gap: 0.75rem; font-weight: 700; font-size: 1.1rem; }
+        .logo-icon { width: 32px; height: 32px; background: var(--orange); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+        .nav-links { display: flex; gap: 2rem; list-style: none; align-items: center; }
+        .nav-links a { color: var(--text-dim); font-size: 0.95rem; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--text); }
+
+        .menu-toggle { display: none; background: none; border: none; color: #fff; cursor: pointer; }
+
+        /* Hero */
+        .hero { padding: 5rem 0 3rem; text-align: center; }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 0.4rem 1rem; background: var(--bg-glass);
+            border: 1px solid var(--border-glass); border-radius: 20px;
+            font-size: 0.85rem; color: var(--cyan); margin-bottom: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+        .hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1.1; margin-bottom: 1.5rem; font-weight: 800; }
+        .hero p { font-size: 1.1rem; color: var(--text-dim); max-width: 700px; margin: 0 auto 1rem; }
+        .hero p.malay { font-style: italic; color: var(--text-muted); margin-bottom: 2.5rem; font-size: 1rem; }
+        .hero-cta { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2rem; }
+        .hero-disclosure {
+            font-size: 0.85rem; color: var(--text-muted); max-width: 600px; margin: 0 auto;
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.02); padding: 0.5rem 1rem; border-radius: 8px; border: 1px dashed var(--border-glass);
+        }
+
+        /* Browser Frame */
+        .browser-frame {
+            margin-top: 3rem; border-radius: 12px;
+            border: 1px solid var(--border-glass);
+            background: var(--bg-surface); overflow: hidden;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+            transform: perspective(1000px) rotateX(2deg);
+            transition: transform 0.5s ease;
+        }
+        .browser-bar { background: var(--bg-glass); padding: 0.75rem 1rem; display: flex; gap: 0.5rem; border-bottom: 1px solid var(--border-glass); }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .dot.red { background: #ef4444; } .dot.yellow { background: #eab308; } .dot.green { background: #22c55e; }
+        .browser-url { flex: 1; background: rgba(0,0,0,0.3); border-radius: 6px; margin-left: 1rem; padding: 0.25rem 0.5rem; font-size: 0.75rem; color: var(--text-dim); display: flex; align-items: center; }
+        .browser-content { width: 100%; aspect-ratio: 16/9; background-color: #111; display: flex; align-items: center; justify-content: center; }
+        .browser-content img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+
+        /* Section Title */
+        .section-header { text-align: center; margin-bottom: 3.5rem; }
+        .section-label { color: var(--orange); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; }
+        .section-title { font-size: clamp(1.8rem, 4vw, 2.8rem); margin-top: 0.5rem; font-weight: 700; }
+        .section-subtitle { color: var(--text-dim); max-width: 700px; margin: 1rem auto 0; }
+
+        /* Problem & Solution */
+        .comparison-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 2rem; align-items: center; }
+        .comp-card { background: var(--bg-glass); border: 1px solid var(--border-glass); padding: 2rem; border-radius: var(--radius); height: 100%; }
+        .comp-card h3 { margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .comp-list { list-style: none; }
+        .comp-list li { color: var(--text-dim); margin-bottom: 0.75rem; display: flex; align-items: flex-start; gap: 0.5rem; }
+        .comp-list li svg { flex-shrink: 0; margin-top: 4px; }
+        .comp-arrow { color: var(--orange); display: flex; justify-content: center; }
+
+        /* Features Bento Grid */
+        .bento-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+        .bento-card { background: var(--bg-glass); border: 1px solid var(--border-glass); border-radius: var(--radius); padding: 1.5rem; backdrop-filter: blur(10px); transition: var(--transition); display: flex; flex-direction: column; }
+        .bento-card:hover { border-color: var(--border-active); transform: translateY(-4px); background: var(--bg-glass-hover); }
+        .icon-box { width: 40px; height: 40px; background: rgba(255,255,255,0.05); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; color: var(--cyan); }
+        .bento-card h3 { font-size: 1.2rem; margin-bottom: 0.5rem; }
+        .bento-card p { color: var(--text-dim); font-size: 0.95rem; flex-grow: 1; }
+        .tag { font-size: 0.75rem; padding: 0.3rem 0.6rem; border-radius: 4px; font-weight: 600; margin-top: 1rem; align-self: flex-start; display: inline-flex; align-items: center; gap: 0.25rem; }
+        .tag-green { background: rgba(74, 222, 128, 0.1); color: var(--green); border: 1px solid rgba(74, 222, 128, 0.3); }
+        .tag-cyan { background: rgba(0, 229, 255, 0.1); color: var(--cyan); border: 1px solid rgba(0, 229, 255, 0.3); }
+        .tag-yellow { background: rgba(250, 204, 21, 0.1); color: var(--yellow); border: 1px solid rgba(250, 204, 21, 0.3); }
+        .tag-desc { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem; display: block; }
+
+        /* How It Works */
+        .steps-container { display: flex; justify-content: space-between; position: relative; gap: 1rem; }
+        .steps-container::before { content: ''; position: absolute; top: 40px; left: 50px; right: 50px; height: 2px; background: var(--border-glass); z-index: 0; border-top: 2px dashed var(--border-glass); background: none; }
+        .step-item { text-align: center; position: relative; z-index: 1; flex: 1; background: var(--bg-deep); padding: 0 1rem; }
+        .step-num { width: 80px; height: 80px; background: var(--bg-surface); border: 2px solid var(--orange); border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; color: var(--orange); box-shadow: 0 0 20px rgba(255, 107, 0, 0.2); }
+        .step-item h4 { margin-bottom: 0.5rem; }
+        .step-item p { color: var(--text-dim); font-size: 0.9rem; max-width: 220px; margin: 0 auto; }
+        .privacy-note { text-align: center; margin-top: 3rem; font-size: 0.9rem; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: var(--bg-glass); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-glass); max-width: 800px; margin-left: auto; margin-right: auto; }
+
+        /* Coverage */
+        .coverage-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+        .coverage-card { background: var(--bg-glass); border: 1px solid var(--border-glass); padding: 2rem; border-radius: var(--radius); text-align: center; transition: var(--transition); }
+        .coverage-card:hover { border-color: var(--cyan); }
+        .coverage-card h4 { color: var(--cyan); margin-bottom: 0.5rem; }
+        .coverage-qual { text-align: center; margin-top: 2rem; color: var(--text-muted); font-size: 0.9rem; }
+        .transport-scope { background: var(--bg-glass); border: 1px solid var(--border-glass); padding: 1.5rem; border-radius: var(--radius); text-align: center; margin-top: 2rem; }
+
+        /* Data Status */
+        .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+        .status-item { display: flex; justify-content: space-between; align-items: center; background: var(--bg-glass); padding: 1rem 1.5rem; border-radius: var(--radius); border: 1px solid var(--border-glass); }
+        .status-name { font-weight: 500; }
+
+        /* Case Study */
+        .case-study-box { background: var(--bg-glass); border: 1px solid var(--border-glass); border-radius: var(--radius); padding: 3rem; }
+        .case-content { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; }
+        .case-list { list-style: none; }
+        .case-list li { margin-bottom: 0.75rem; display: flex; align-items: flex-start; gap: 0.5rem; color: var(--text-dim); }
+        .tech-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+        .tech-badge { background: rgba(255,255,255,0.05); padding: 0.4rem 0.8rem; border-radius: 6px; font-family: 'Cascadia Code', 'SFMono-Regular', Consolas, monospace; font-size: 0.85rem; color: var(--text); border: 1px solid var(--border-glass); }
+
+        /* Roadmap */
+        .roadmap-track { position: relative; border-left: 2px solid var(--border-glass); margin-left: 1rem; padding-left: 2rem; max-width: 600px; margin: 0 auto; }
+        .roadmap-item { margin-bottom: 2.5rem; position: relative; }
+        .roadmap-item::before { content: ''; position: absolute; left: -2.5rem; top: 0.5rem; width: 12px; height: 12px; background: var(--cyan); border-radius: 50%; box-shadow: 0 0 10px var(--cyan); }
+        .roadmap-version { font-family: 'Cascadia Code', 'SFMono-Regular', Consolas, monospace; color: var(--cyan); font-size: 0.9rem; font-weight: 600; }
+        .roadmap-desc { color: var(--text); font-size: 1.1rem; margin-top: 0.25rem; }
+        .roadmap-status { font-size: 0.85rem; margin-top: 0.5rem; font-weight: 600; }
+        .status-current { color: var(--green); }
+        .status-planned { color: var(--text-muted); }
+
+        /* CTA */
+        .cta-section { background: linear-gradient(135deg, rgba(255, 107, 0, 0.1), transparent); border: 1px solid var(--border-glass); border-radius: 24px; padding: 4rem 2rem; text-align: center; }
+
+        /* Footer */
+        footer { background: #04060d; padding: 4rem 0 2rem; border-top: 1px solid var(--border-glass); margin-top: 4rem; }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 3rem; margin-bottom: 2rem; }
+        .footer-logo { font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem; }
+        .footer-desc { color: var(--text-dim); margin-bottom: 1rem; font-size: 0.9rem; }
+        .footer-col h4 { margin-bottom: 1rem; color: var(--text); font-size: 1rem; }
+        .footer-col a { display: block; color: var(--text-dim); margin-bottom: 0.5rem; transition: color 0.2s; font-size: 0.9rem; }
+        .footer-col a:hover { color: var(--orange); }
+        .footer-bottom { border-top: 1px solid var(--border-glass); padding-top: 2rem; text-align: center; color: #64748b; font-size: 0.85rem; }
+        .footer-disclaimer { max-width: 800px; margin: 0 auto 1rem; }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .bento-grid { grid-template-columns: repeat(2, 1fr); }
+            .comparison-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+            .comp-arrow { transform: rotate(90deg); }
+            .steps-container { flex-direction: column; gap: 2rem; }
+            .steps-container::before { display: none; }
+            .step-item { background: transparent; }
+            .case-content { grid-template-columns: 1fr; gap: 2rem; }
+            .case-study-box { padding: 2rem; }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; position: absolute; top: 72px; left: 0; width: 100%; background: rgba(6,9,20,0.98); backdrop-filter: blur(10px); flex-direction: column; padding: 2rem; gap: 1.5rem; border-bottom: 1px solid var(--border-glass); }
+            .nav-links.active { display: flex; }
+            .menu-toggle { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; }
+            .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
+            .hero { padding: 3rem 0 2rem; }
+            .browser-frame { transform: none; } /* Disable 3D transform on mobile */
+        }
+
+        @media (max-width: 480px) {
+            .bento-grid { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 1.8rem; }
+            .hero p { font-size: 1rem; }
+            .hero-cta { flex-direction: column; width: 100%; }
+            .hero-cta .btn { width: 100%; }
+        }
+
+        @media (max-width: 360px) {
+            .container { padding-left: 1rem; padding-right: 1rem; }
+            .logo { gap: 0.5rem; max-width: calc(100% - 52px); font-size: 0.88rem; line-height: 1.15; }
+            .logo-icon { width: 28px; height: 28px; }
+            .logo span { max-width: 170px; }
+            .menu-toggle { flex: 0 0 44px; }
+        }
+
+        /* Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+            .browser-frame { transform: none; }
+            .browser-frame:hover { transform: none; }
+            .bento-card:hover { transform: none; }
+        }
+    </style>
 </head>
 <body>
-<div class="app">
-  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
-  <aside class="sidebar" id="sidebar" aria-label="Main navigation">
-    <div class="brand">
-      <div class="brand-mark" aria-hidden="true"><i data-lucide="navigation"></i></div>
-      <div class="brand-text"><div class="t1">Selangor</div><div class="t2">Mobility Navigator</div></div>
-    </div>
-    <nav class="nav-scroll touch-scroll">
-      <div class="nav-section">
-        <div class="nav-label">Explore</div>
-        <button class="nav-item active" data-view="dashboard"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></button>
-        <button class="nav-item" data-view="livemap"><i data-lucide="map"></i><span>Transit Map</span></button>
-        <button class="nav-item" data-view="nearest"><i data-lucide="locate"></i><span>Nearest Station</span></button>
-        <button class="nav-item" data-view="planner"><i data-lucide="route"></i><span>Trip Planner</span></button>
-        <button class="nav-item" data-view="status"><i data-lucide="database"></i><span>Project Status</span></button>
-      </div>
-      <div class="nav-section">
-        <div class="nav-label">Planned modules</div>
-        <button class="nav-item" data-view="schedules"><i data-lucide="clock"></i><span>Schedules</span></button>
-        <button class="nav-item" data-view="alerts"><i data-lucide="bell"></i><span>Alerts</span></button>
-        <button class="nav-item" data-view="fares"><i data-lucide="calculator"></i><span>Fare Estimator</span></button>
-        <button class="nav-item" data-view="parkride"><i data-lucide="parking-square"></i><span>Park & Ride</span></button>
-        <button class="nav-item" data-view="account"><i data-lucide="user-circle"></i><span>Account</span></button>
-      </div>
-      <div class="nav-section">
-        <div class="nav-label">Information</div>
-        <button class="nav-item" data-view="help"><i data-lucide="help-circle"></i><span>Help & Support</span></button>
-        <button class="nav-item" data-view="feedback"><i data-lucide="message-square"></i><span>Feedback</span></button>
-      </div>
-    </nav>
-    <div class="mode-filter">
-      <div class="mode-filter-title"><i data-lucide="filter"></i><span>Map layers</span></div>
-      <div class="mode-grid">
-        <button class="mode-btn ktm active" data-mode="ktm" aria-pressed="true" aria-label="Toggle KTM"><span class="ind"></span><i data-lucide="train-front"></i><span class="ml">KTM</span></button>
-        <button class="mode-btn lrt active" data-mode="lrt" aria-pressed="true" aria-label="Toggle LRT"><span class="ind"></span><i data-lucide="train"></i><span class="ml">LRT</span></button>
-        <button class="mode-btn mrt active" data-mode="mrt" aria-pressed="true" aria-label="Toggle MRT"><span class="ind"></span><i data-lucide="train-track"></i><span class="ml">MRT</span></button>
-        <button class="mode-btn bus active" data-mode="bus" aria-pressed="true" aria-label="Toggle bus"><span class="ind"></span><i data-lucide="bus"></i><span class="ml">BUS</span></button>
-      </div>
-    </div>
-  </aside>
 
-  <main class="main">
-    <header class="topbar">
-      <button class="hamburger" id="hamburgerBtn" aria-label="Open navigation" aria-expanded="false"><i data-lucide="menu"></i></button>
-      <div class="search"><i data-lucide="search"></i><input type="search" placeholder="Search stations" id="globalSearch" aria-label="Search stations" /></div>
-      <div class="topbar-actions">
-        <button class="prototype-badge" id="statusBtn" type="button">Public Prototype</button>
-        <button class="icon-btn" id="locateBtn" aria-label="Find nearest station"><i data-lucide="locate"></i></button>
-        <button class="user-chip" id="userChip" type="button" aria-label="Open account information">
-          <span class="avatar" aria-hidden="true"><i data-lucide="user"></i></span>
-          <span class="guest-copy"><strong>Guest</strong><small>Public prototype session</small></span>
-        </button>
-      </div>
+    <div class="bg-decoration" aria-hidden="true"></div>
+
+    <header>
+        <div class="container nav-wrapper">
+            <a href="/" class="logo" aria-label="Selangor Mobility Navigator Home">
+                <div class="logo-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                </div>
+                <span>Selangor Mobility Navigator</span>
+            </a>
+
+            <nav aria-label="Main">
+                <ul class="nav-links" id="navMenu">
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#how-it-works">How It Works</a></li>
+                    <li><a href="#coverage">Coverage</a></li>
+                    <li><a href="#data-status">Data Status</a></li>
+                    <li><a href="#case-study">Case Study</a></li>
+                    <li><a href="https://github.com/cko99/selangor-mobility-navigator" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+                    <li><a href="/app" class="btn btn-primary">Explore App</a></li>
+                </ul>
+            </nav>
+
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="navMenu">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="menuIcon" aria-hidden="true">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+        </div>
     </header>
 
-    <div class="content">
-      <section class="view active" id="view-dashboard" aria-labelledby="dashboardTitle">
-        <div class="view-scroll touch-scroll"><div class="grid grid-cols-12 gap-4">
-          <article class="col-span-12 lg:col-span-8 card fade-in hero-card">
-            <div class="eyebrow">Public Prototype v0.2.1</div>
-            <h1 id="dashboardTitle">Selangor Mobility Navigator</h1>
-            <p>A responsive Web GIS prototype for understanding public-transport locations, nearby stations and scheduled journey information across Selangor and the Klang Valley.</p>
-            <div class="action-row">
-              <button class="btn-primary" onclick="switchView('livemap')"><i data-lucide="map"></i>Explore Transit Map</button>
-              <button class="btn-ghost" onclick="switchView('nearest')"><i data-lucide="locate"></i>Find Nearest Station</button>
-              <button class="btn-ghost" onclick="switchView('status')"><i data-lucide="database"></i>View Project Status</button>
+    <main>
+        <!-- Hero -->
+        <section class="hero">
+            <div class="container">
+                <div class="hero-badge">
+                    <span style="width: 8px; height: 8px; background: var(--orange); border-radius: 50%;"></span>
+                    Public Prototype v0.2.1
+                </div>
+                <h1>Understand Klang Valley transit on a geographic map.</h1>
+                <p>Find nearby KTM, MRT, LRT, BRT and bus connections, understand station locations and open navigation from one responsive Web GIS interface.</p>
+                <p class="malay">Cari stesen berdekatan, fahami laluan transit dan buka navigasi dengan lebih mudah.</p>
+
+                <div class="hero-cta">
+                    <a href="/app" class="btn btn-primary">Explore App</a>
+                    <a href="/app/nearest" class="btn btn-ghost">Find Nearest Station</a>
+                    <a href="https://github.com/cko99/selangor-mobility-navigator" target="_blank" rel="noopener noreferrer" class="btn btn-ghost">View GitHub</a>
+                </div>
+
+                <div class="hero-disclosure">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    Independent Web GIS portfolio prototype. Verified public-data integration is being developed incrementally.
+                </div>
             </div>
-          </article>
-          <article class="col-span-12 lg:col-span-4 card fade-in status-summary">
-            <div class="card-head"><div class="card-title"><i data-lucide="shield-check"></i>Prototype disclosure</div><span class="pill demo">Prototype</span></div>
-            <div class="card-body"><p>This independent portfolio project is not affiliated with KTMB, Prasarana, Rapid KL, MRT Corp or any government agency.</p><p class="source-meta">Some modules use static or demonstration data while verified public-data integration is in progress.</p></div>
-          </article>
-          <div class="col-span-12 status-cards fade-in" aria-label="Project summary">
-            <article class="stat-mini"><div class="lbl">Project Status</div><div class="project-value">Public Prototype v0.2.1</div><p>Interface operational. Public-data validation is in progress.</p></article>
-            <article class="stat-mini"><div class="lbl">Core Focus</div><div class="project-value">Transit Map</div><p>Stations, routes and nearest-transit discovery.</p></article>
-            <article class="stat-mini"><div class="lbl">Data Status</div><div class="project-value">Integration in progress</div><p>GTFS, weather and supporting datasets are being validated.</p></article>
-            <article class="stat-mini"><div class="lbl">Coverage</div><div class="project-value">Klang Valley</div><p>Selangor, Kuala Lumpur and Putrajaya prototype scope.</p></article>
-          </div>
-          <article class="col-span-12 card fade-in map-preview-card">
-            <div class="card-head"><div class="card-title"><i data-lucide="map"></i>Transit map preview</div><span class="pill static">Static routes</span></div>
-            <div class="mini-map" id="miniMap" data-map-host></div>
-          </article>
-        </div></div>
-      </section>
+        </section>
 
-      <section class="view" id="view-livemap" aria-labelledby="mapTitle">
-        <div class="card map-view-card fade-in">
-          <div class="map-view-heading"><div><div class="eyebrow">Prototype station and route visualisation</div><h2 id="mapTitle">Transit Map</h2></div><span class="pill static">OpenStreetMap · Static network</span></div>
-          <div class="map-overlay-top"><div class="layer-switch" id="layerSwitch" aria-label="Transit layer filter"><button class="on" data-layer="all">All</button><button data-layer="ktm">KTM</button><button data-layer="lrt">LRT</button><button data-layer="mrt">MRT</button><button data-layer="bus">Bus</button></div></div>
-          <div data-map-host class="map-host"></div>
-          <div class="map-controls">
-            <button class="map-ctrl-btn" onclick="resetMapView()" aria-label="Reset map view"><i data-lucide="home"></i></button>
-            <button class="map-ctrl-btn" onclick="map.zoomIn()" aria-label="Zoom in"><i data-lucide="plus"></i></button>
-            <button class="map-ctrl-btn" onclick="map.zoomOut()" aria-label="Zoom out"><i data-lucide="minus"></i></button>
-            <button class="map-ctrl-btn" onclick="locateUser()" aria-label="Find nearest station"><i data-lucide="locate"></i></button>
+        <!-- Product Preview -->
+        <section style="padding-top: 0;">
+            <div class="container">
+                <div class="browser-frame">
+                    <div class="browser-bar">
+                        <div class="dot red"></div>
+                        <div class="dot yellow"></div>
+                        <div class="dot green"></div>
+                        <div class="browser-url mono">https://selangor-mobility-navigator.pages.dev/app</div>
+                    </div>
+                    <div class="browser-content">
+                        <img src="/dashboard-preview.png" alt="Selangor Mobility Navigator dashboard showing a transit map, station controls and mobility navigation interface." width="1600" height="900" loading="eager" fetchpriority="high">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Problem & Solution -->
+        <section id="problem">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-label">The Context</span>
+                    <h2 class="section-title">Schematic vs. Geographic Reality</h2>
+                </div>
+                <div class="comparison-grid">
+                    <div class="comp-card">
+                        <h3>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                            Schematic Transit Diagram
+                        </h3>
+                        <ul class="comp-list">
+                            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Useful for network relationships</li>
+                            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Simplified geography</li>
+                            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Harder to understand real station surroundings</li>
+                            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Does not directly show the user’s current location</li>
+                        </ul>
+                    </div>
+                    <div class="comp-arrow">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </div>
+                    <div class="comp-card" style="border-color: var(--orange);">
+                        <h3 style="color: var(--orange);">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                            Geographic Web GIS
+                        </h3>
+                        <ul class="comp-list">
+                            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Real-world location context</li>
+                            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Station discovery</li>
+                            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Nearby-transit analysis</li>
+                            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Route and station information</li>
+                            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> External navigation options</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Core Features -->
+        <section id="features">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-label">Core Features</span>
+                    <h2 class="section-title">Web GIS Interface Capabilities</h2>
+                </div>
+
+                <div class="bento-grid">
+                    <div class="bento-card">
+                        <div class="icon-box">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+                        </div>
+                        <h3>Transit Map</h3>
+                        <p>Explore prototype station and route visualisations geographically.</p>
+                        <span class="tag tag-cyan">Prototype</span>
+                        <span class="tag-desc">Route geometry validation in progress</span>
+                    </div>
+                    <div class="bento-card">
+                        <div class="icon-box">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        </div>
+                        <h3>Nearest Station</h3>
+                        <p>Use location access to identify nearby transport points.</p>
+                        <span class="tag tag-cyan">Prototype</span>
+                        <span class="tag-desc">Geolocation with tested Haversine distance analysis</span>
+                    </div>
+                    <div class="bento-card">
+                        <div class="icon-box">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                        </div>
+                        <h3>Station Information</h3>
+                        <p>View available station, mode and route information.</p>
+                        <span class="tag tag-cyan">Prototype</span>
+                        <span class="tag-desc">Source-backed GTFS Static dataset</span>
+                    </div>
+                    <div class="bento-card">
+                        <div class="icon-box">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg>
+                        </div>
+                        <h3>Prototype Trip Planner</h3>
+                        <p>Explore the journey-planning interface and supported prototype route states.</p>
+                        <span class="tag tag-cyan">Prototype</span>
+                        <span class="tag-desc">Direct static route relationships with external fallback</span>
+                    </div>
+                    <div class="bento-card">
+                        <div class="icon-box">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+                        </div>
+                        <h3>Google Maps Navigation</h3>
+                        <p>Open directions to selected transport locations.</p>
+                        <span class="tag tag-green">Available</span>
+                        <span class="tag-desc">Deep linking to external navigator</span>
+                    </div>
+                    <div class="bento-card">
+                        <div class="icon-box">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                        </div>
+                        <h3>Responsive Interface</h3>
+                        <p>Use the Web GIS on desktop, tablet and mobile.</p>
+                        <span class="tag tag-green">Available</span>
+                        <span class="tag-desc">Validated across major viewports</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works -->
+        <section id="how-it-works">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-label">Workflow</span>
+                    <h2 class="section-title">How It Works</h2>
+                </div>
+                <div class="steps-container">
+                    <div class="step-item">
+                        <div class="step-num">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </div>
+                        <h4>Open the application</h4>
+                        <p>Launch the Web GIS interface in your browser.</p>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-num">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        </div>
+                        <h4>Allow location access</h4>
+                        <p>Allow location access to find nearby stations.</p>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-num">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                        </div>
+                        <h4>Select a station</h4>
+                        <p>Select a station or nearby transport point on the map.</p>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-num">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+                        </div>
+                        <h4>Open navigation</h4>
+                        <p>Open navigation or explore route information.</p>
+                    </div>
+                </div>
+                <div class="privacy-note">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    Privacy Note: Location is requested only when the user chooses to use location-based features. Location data is not stored.
+                </div>
+            </div>
+        </section>
+
+        <!-- Prototype Coverage -->
+        <section id="coverage">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-label">Scope</span>
+                    <h2 class="section-title">Prototype Coverage</h2>
+                    <p class="section-subtitle">The prototype currently maps transit assets across key regions in the central Klang Valley conurbation.</p>
+
           </div>
+
+                <div class="coverage-grid">
+                    <div class="coverage-card">
+                        <h4>Selangor</h4>
+                        <p style="color: var(--text-dim);">Core suburban networks</p>
+                    </div>
+                    <div class="coverage-card">
+                        <h4>Kuala Lumpur</h4>
+                        <p style="color: var(--text-dim);">Central business district lines</p>
+                    </div>
+                    <div class="coverage-card">
+                        <h4>Putrajaya</h4>
+                        <p style="color: var(--text-dim);">Administrative capital links</p>
+                    </div>
+                    <div class="coverage-card">
+                        <h4>Klang Valley</h4>
+                        <p style="color: var(--text-dim);">Wider metropolitan scope</p>
+                    </div>
+                </div>
+
+                <div class="transport-scope">
+                    <p style="color: var(--text);"><strong>Transport Scope:</strong> KTM Komuter, MRT, LRT, BRT, and selected bus services.</p>
+                </div>
+
+                <p class="coverage-qual">Coverage, route geometry and station data are being progressively validated using public transport datasets.</p>
+            </div>
+        </section>
+
+        <!-- Project and Data Status -->
+        <section id="data-status">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-label">Status</span>
+                    <h2 class="section-title">Project & Data Status</h2>
+                    <p class="section-subtitle">Transparent status of current interface modules and data integration.</p>
+                </div>
+
+                <div class="status-grid">
+                    <div class="status-item">
+                        <span class="status-name">Transit map interface</span>
+                        <span class="tag tag-green">Operational</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-name">Station locations</span>
+                        <span class="tag tag-yellow">In Progress</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-name">Route geometry</span>
+                        <span class="tag tag-yellow">In Progress</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-name">Nearest station</span>
+                        <span class="tag tag-cyan">Prototype</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-name">Google Maps navigation</span>
+                        <span class="tag tag-green">Operational</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-name">Scheduled departures</span>
+                        <span class="tag tag-cyan">Prototype schedule</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-name">Realtime vehicles</span>
+                        <span class="tag" style="color: #f87171; border: 1px solid rgba(248,113,113,0.3); background: rgba(248,113,113,0.1);">Not Integrated</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-name">Fare estimation</span>
+                        <span class="tag tag-cyan">Coming Soon</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-name">User accounts</span>
+                        <span class="tag tag-yellow">Not included</span>
+                    </div>
+                </div>
+
+                <p style="margin-top: 2rem; font-size: 0.9rem; color: var(--text-muted); text-align: center;">
+                    Note: Static data is not realtime. Prototype data is not official operator data. Verified data integration is ongoing.
+                </p>
+
+                <div class="text-center mt-2">
+                    <a href="/status" class="btn btn-ghost">View Full Project Status</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Case Study -->
+        <section id="case-study">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-label">Portfolio</span>
+                    <h2 class="section-title">Built as a Web GIS Portfolio Project</h2>
+                </div>
+
+                <div class="case-study-box">
+                    <div class="case-content">
+                        <div>
+                            <h3 style="margin-bottom: 1rem;">Technical Work Demonstrated</h3>
+                            <ul class="case-list">
+                                <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Responsive Web GIS interface design</li>
+                                <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Geolocation handling & privacy</li>
+                                <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Nearest-location analysis with a tested Haversine calculation</li>
+                                <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Map interaction & layer management (Leaflet)</li>
+                                <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Route and station visualisation</li>
+                                <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> External navigation deep linking</li>
+                                <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Cloudflare deployment & GitHub version control</li>
+                                <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Release-based development & accessibility testing</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 style="margin-bottom: 1rem;">Technology Stack</h3>
+                            <p style="color: var(--text-dim);">The project is built using modern, lightweight geospatial technologies:</p>
+                            <div class="tech-badges">
+                                <span class="tech-badge">HTML &amp; CSS</span>
+                                <span class="tech-badge">JavaScript modules</span>
+                                <span class="tech-badge">Leaflet 1.9.4</span>
+                                <span class="tech-badge">OpenStreetMap</span>
+                                <span class="tech-badge">Vite 8</span>
+                                <span class="tech-badge">TypeScript</span>
+                                <span class="tech-badge">Cloudflare Pages</span>
+                                <span class="tech-badge">Pages Functions</span>
+                                <span class="tech-badge">Vitest</span>
+                                <span class="tech-badge">ESLint</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <a href="https://github.com/cko99/selangor-mobility-navigator" target="_blank" rel="noopener noreferrer" class="btn btn-primary">View Source Code</a>
+                        <a href="/status" class="btn btn-ghost">View Project Status</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Development Roadmap -->
+        <section id="roadmap">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-label">Timeline</span>
+                    <h2 class="section-title">Development Roadmap</h2>
+                </div>
+
+                <div class="roadmap-track">
+                    <div class="roadmap-item">
+                        <div class="roadmap-version">Preview branch</div>
+                        <div class="roadmap-desc">Landing page and public application entry.</div>
+                        <div class="roadmap-status status-current">In preview</div>
+                    </div>
+                    <div class="roadmap-item">
+                        <div class="roadmap-version">v0.3.0</div>
+                        <div class="roadmap-desc">Continue validating GTFS Static coverage and route semantics.</div>
+                        <div class="roadmap-status status-planned">Validation work</div>
+                    </div>
+                    <div class="roadmap-item">
+                        <div class="roadmap-version">v0.3.1</div>
+                        <div class="roadmap-desc">Continue validating scheduled departure coverage and semantics.</div>
+                        <div class="roadmap-status status-planned">Validation work</div>
+                    </div>
+                    <div class="roadmap-item">
+                        <div class="roadmap-version">v0.5.0</div>
+                        <div class="roadmap-desc">Verified realtime vehicle information where suitable feeds exist.</div>
+                        <div class="roadmap-status status-planned">Planned</div>
+                    </div>
+                </div>
+
+                <p style="text-align: center; margin-top: 2rem; color: var(--text-muted); font-size: 0.9rem;">
+                    Roadmap scope may change based on public-data availability and validation.
+                </p>
+            </div>
+        </section>
+
+        <!-- Final CTA -->
+        <section>
+            <div class="container">
+                <div class="cta-section">
+                    <h2 class="section-title">Explore the public prototype.</h2>
+                    <p style="color: var(--text-dim); max-width: 600px; margin: 1rem auto 2rem;">Open the current Web GIS interface, test its available features and review the project’s development status.</p>
+                    <div class="hero-cta">
+                        <a href="/app" class="btn btn-primary">Explore App</a>
+                        <a href="https://github.com/cko99/selangor-mobility-navigator" target="_blank" rel="noopener noreferrer" class="btn btn-ghost">View GitHub</a>
+                        <a href="https://github.com/cko99/selangor-mobility-navigator/issues" target="_blank" rel="noopener noreferrer" class="btn btn-ghost">Give Feedback</a>
+                    </div>
+                    <p style="margin-top: 1.5rem; color: var(--text-muted); font-size: 0.9rem;">No login required.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <div class="footer-logo">Selangor Mobility Navigator</div>
+                    <p class="footer-desc">
+                        Public Prototype v0.2.1<br>
+                        Creator: Luqman Abd Latif<br>
+                        Field: Geomatics and GIS
+                    </p>
+                </div>
+                <div class="footer-col">
+                    <h4>Navigation</h4>
+                    <a href="/">Home</a>
+                    <a href="/app">Explore App</a>
+                    <a href="/status">Project Status</a>
+                    <a href="#data-status">Data Status</a>
+                </div>
+                <div class="footer-col">
+                    <h4>External</h4>
+                    <a href="https://github.com/cko99/selangor-mobility-navigator" target="_blank" rel="noopener noreferrer">GitHub</a>
+                    <a href="https://github.com/cko99/selangor-mobility-navigator/issues" target="_blank" rel="noopener noreferrer">Feedback</a>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <div class="footer-disclaimer">
+                    <p>Selangor Mobility Navigator is an independent portfolio project and is not affiliated with KTMB, Prasarana, Rapid KL, MRT Corp or any government agency.</p>
+                    <p style="margin-top: 0.5rem;">Some modules may use prototype, static or demonstration data while verified public-data integration is in progress.</p>
+                </div>
+                <p style="margin-top: 1rem;">&copy; <span id="currentYear"></span> Selangor Mobility Navigator. All rights reserved.</p>
+            </div>
         </div>
-      </section>
+    </footer>
 
-      <section class="view" id="view-nearest" aria-labelledby="nearestTitle">
-        <div class="view-scroll touch-scroll"><div class="grid grid-cols-12 gap-4">
-          <div class="col-span-12 lg:col-span-5 fade-in">
-            <article class="card"><div class="card-head"><div class="card-title"><i data-lucide="locate"></i><span id="nearestTitle">Nearest Station</span></div><span class="pill static">GTFS Static</span></div>
-              <div class="card-body"><p>Your location is requested only after you choose to detect it. It is used in this browser and is not stored.</p><div id="geoStatus" class="notice">Choose “Use My Location” to begin.</div><button class="btn-primary full-width" onclick="detectLocation()"><i data-lucide="crosshair"></i>Use My Location</button>
-                <label class="lbl" for="bufferRadius">Search radius (500 m to 3 km)</label><div class="inline-control"><input type="number" class="input" id="bufferRadius" value="1500" min="500" max="3000" step="100" /><button class="btn-ghost" onclick="searchNearby()">Search</button></div><p class="source-meta">Results use approximate straight-line distance, not walking-route distance.</p></div>
-            </article>
-            <article class="card result-card"><div class="card-head"><div class="card-title"><i data-lucide="list"></i>Nearby stations</div></div><div id="nearestList" class="card-body"><div class="data-empty">Detect your location to find nearby stations.</div></div></article>
-          </div>
-          <article class="col-span-12 lg:col-span-7 card map-panel fade-in"><div data-map-host class="map-host"></div></article>
-        </div></div>
-      </section>
+    <script>
+        const menuToggle = document.getElementById('menuToggle');
+        const navMenu = document.getElementById('navMenu');
+        const menuIcon = document.getElementById('menuIcon');
 
-      <section class="view" id="view-planner" aria-labelledby="plannerTitle">
-        <div class="view-scroll touch-scroll"><div class="grid grid-cols-12 gap-4">
-          <div class="col-span-12 lg:col-span-4 fade-in">
-            <article class="card"><div class="card-head"><div class="card-title"><i data-lucide="route"></i><span id="plannerTitle">Prototype Trip Planner</span></div><span class="pill demo">Prototype</span></div><div class="card-body"><p>Detailed multimodal routing is under development. This prototype checks only a direct relationship in the loaded static dataset.</p>
-              <label class="lbl" for="planFrom">From station</label><input type="text" id="planFrom" class="input" list="stationOptions" placeholder="Choose a station" />
-              <label class="lbl" for="planTo">To station</label><input type="text" id="planTo" class="input" list="stationOptions" placeholder="Choose a station" /><datalist id="stationOptions"></datalist>
-              <div class="action-row"><button class="btn-ghost" onclick="swapPlanner()" aria-label="Swap stations"><i data-lucide="arrow-up-down"></i>Swap</button><button class="btn-primary" onclick="planTrip()"><i data-lucide="search"></i>Find Prototype Route</button></div></div></article>
-            <article class="card result-card" id="routeResult" hidden><div class="card-head"><div class="card-title" id="routeResultTitle"><i data-lucide="navigation"></i>Prototype result</div></div><div class="card-body" id="routeResultBody"></div></article>
-          </div>
-          <article class="col-span-12 lg:col-span-8 card map-panel fade-in"><div data-map-host class="map-host"></div></article>
-        </div></div>
-      </section>
+        // Toggle menu
+        menuToggle.addEventListener('click', () => {
+            const isActive = navMenu.classList.toggle('active');
+            menuToggle.setAttribute('aria-expanded', isActive);
 
-      <section class="view" id="view-schedules" aria-labelledby="scheduleHeading"><div class="view-scroll touch-scroll"><div class="grid grid-cols-12 gap-4">
-        <article class="col-span-12 lg:col-span-4 card fade-in"><div class="card-head"><div class="card-title"><i data-lucide="clock"></i><span id="scheduleHeading">Prototype Timetable</span></div><span class="pill scheduled">Scheduled static</span></div><div class="card-body"><p>GTFS schedule integration is being validated. Times shown are scheduled data, not realtime arrivals.</p><label class="lbl" for="schedMode">Transport mode</label><select class="input" id="schedMode" onchange="updateScheduleFilter()"><option value="ktm">KTM Komuter</option><option value="lrt">LRT</option><option value="mrt">MRT</option><option value="bus">Bus</option></select><label class="lbl" for="schedStation">Station</label><select class="input" id="schedStation" onchange="renderSchedule()"></select></div></article>
-        <article class="col-span-12 lg:col-span-8 card fade-in"><div class="card-head"><div class="card-title"><i data-lucide="calendar-clock"></i><span id="schedTitle">Scheduled departures</span></div></div><div class="card-body" id="schedGridWrap"><div class="data-empty">Select a station to view scheduled static data.</div></div></article>
-      </div></div></section>
+            // Toggle icon between menu and X
+            if (isActive) {
+                menuIcon.innerHTML = '<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>';
+            } else {
+                menuIcon.innerHTML = '<line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line>';
+            }
+        });
 
-      <section class="view" id="view-alerts"><div class="view-scroll touch-scroll"><div class="coming-soon-host" data-coming-soon="alerts"></div></div></section>
-      <section class="view" id="view-fares"><div class="view-scroll touch-scroll"><div class="coming-soon-host" data-coming-soon="fares"></div></div></section>
-      <section class="view" id="view-parkride"><div class="view-scroll touch-scroll"><div class="coming-soon-host" data-coming-soon="parkride"></div></div></section>
-      <section class="view" id="view-account"><div class="view-scroll touch-scroll"><div class="coming-soon-host" data-coming-soon="account"></div></div></section>
+        // Close on outside click
+        document.addEventListener('click', (e) => {
+            if (!navMenu.contains(e.target) && !menuToggle.contains(e.target) && navMenu.classList.contains('active')) {
+                closeMenu();
+            }
+        });
 
-      <section class="view" id="view-help" aria-labelledby="helpTitle"><div class="view-scroll touch-scroll"><div class="grid grid-cols-12 gap-4">
-        <article class="col-span-12 lg:col-span-5 card fade-in"><div class="card-head"><div class="card-title"><i data-lucide="help-circle"></i><span id="helpTitle">Help & Support</span></div></div><div class="card-body prose"><h3>About this project</h3><p>Selangor Mobility Navigator is an independent portfolio Web GIS prototype for exploring public-transport geography across Selangor and the Klang Valley.</p><h3>Using the map</h3><p>Use the map filters to show or hide transport modes. Open Nearest Station and explicitly allow location access to calculate approximate straight-line distances.</p><h3>Data limitations</h3><p>Static schedules are not realtime arrivals. Trip results are not official journey recommendations. Fare, service-alert, parking-occupancy and account integrations are not active.</p></div></article>
-        <article class="col-span-12 lg:col-span-7 card fade-in"><div class="card-head"><div class="card-title"><i data-lucide="info"></i>Independent-project disclaimer</div><span class="pill demo">Public Prototype</span></div><div class="card-body prose"><p>Selangor Mobility Navigator is not affiliated with KTMB, Prasarana, Rapid KL, MRT Corp or any government agency.</p><p>Some modules use prototype, static or demonstration data while verified public-data integration is in progress.</p><button class="btn-primary" onclick="switchView('status')">Review Data Status</button></div></article>
-      </div></div></section>
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && navMenu.classList.contains('active')) {
+                closeMenu({ restoreFocus: true });
+            }
+        });
 
-      <section class="view" id="view-feedback" aria-labelledby="feedbackTitle"><div class="view-scroll touch-scroll"><article class="card centered-card fade-in"><div class="coming-icon"><i data-lucide="message-square"></i></div><div class="eyebrow">Public issue tracker</div><h2 id="feedbackTitle">Feedback</h2><p>Report bugs, data concerns or suggestions through the public GitHub Issues page. No form data is collected by this prototype.</p><a class="btn-primary" target="_blank" rel="noopener noreferrer" href="https://github.com/cko99/selangor-mobility-navigator/issues"><i data-lucide="message-circle"></i>Open GitHub Issues</a></article></div></section>
+        // Close menu when clicking a link
+        navMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    closeMenu();
+                }
+            });
+        });
 
-      <section class="view" id="view-status" aria-labelledby="statusTitle"><div class="view-scroll touch-scroll"><div class="grid grid-cols-12 gap-4">
-        <article class="col-span-12 card fade-in"><div class="card-head"><div class="card-title"><i data-lucide="database"></i><span id="statusTitle">Project & Data Status</span></div><span class="pill demo">v0.2.1</span></div><div class="card-body"><p>Sources and limitations are stated here so prototype behaviour is never mistaken for a production transport service.</p><div class="status-table-wrap"><table class="status-table"><thead><tr><th>Feature</th><th>Status</th><th>Source</th><th>Limitation</th></tr></thead><tbody id="projectStatusBody"></tbody></table></div></div></article>
-        <article class="col-span-12 lg:col-span-6 card fade-in"><div class="card-head"><div class="card-title"><i data-lucide="activity"></i>Runtime source status</div><button class="ghost-btn" onclick="refreshAll()">Retry sources</button></div><div class="card-body status-table-wrap"><table class="status-table"><thead><tr><th>Source</th><th>Status</th><th>Last updated</th><th>Limitation</th></tr></thead><tbody id="statusBody"></tbody></table></div></article>
-        <article class="col-span-12 lg:col-span-6 card fade-in"><div class="card-head"><div class="card-title"><i data-lucide="milestone"></i>Roadmap summary</div></div><div class="card-body prose"><p><strong>Current:</strong> static network discovery, nearest-station GIS flow and source-backed prototype schedule display.</p><p><strong>Next:</strong> validate GTFS Static coverage and schedule semantics before expanding realtime, weather and fare integrations.</p><p class="source-meta">No source timestamp is shown unless it is supplied by the dataset or response.</p></div></article>
-      </div></div></section>
-    </div>
-  </main>
-</div>
-<div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
-<script type="module" src="/assets/js/app.js"></script>
+        function closeMenu({ restoreFocus = false } = {}) {
+            navMenu.classList.remove('active');
+            menuToggle.setAttribute('aria-expanded', 'false');
+            menuIcon.innerHTML = '<line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line>';
+            if (restoreFocus) menuToggle.focus();
+        }
+
+        // Footer Year
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+    </script>
 </body>
 </html>
