@@ -2,7 +2,7 @@
   "name": "Selangor Mobility Navigator",
   "short_name": "Mobility Navigator",
   "description": "Independent Klang Valley transit Web GIS public prototype v0.2.1.",
-  "start_url": "/",
+  "start_url": "/app",
   "display": "standalone",
   "background_color": "#0a0e14",
   "theme_color": "#0a0e14",
